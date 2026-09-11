@@ -1,0 +1,8 @@
+# Build output
+Tilt.app/
+TiltTest.app/
+
+# Generated from AppIcon.png by build.sh
+AppIcon.icns
+
+.DS_Store
