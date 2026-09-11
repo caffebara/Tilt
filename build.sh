@@ -40,12 +40,16 @@ fi
 # Tilt.app never gets that flag, so the hook cannot reach a shipped binary.
 APP="Tilt.app"
 EXTRA=""
+ENTITLEMENTS="Resources/Tilt.entitlements"
 if [ "${1:-}" = "--test" ]; then
 	# Outside the project on purpose. Built here it turned up in launchers beside
 	# the real app, with the same name, icon and bundle id, and the only way to
 	# tell them apart was the path.
 	APP="${TMPDIR:-/tmp}TiltTest.app"
 	EXTRA="-D TILT_TEST_HOOK"
+	# Unsandboxed on purpose: the fake lid angle is read from /tmp, which the
+	# container would hide, and the point of this build is to drive transitions.
+	ENTITLEMENTS=""
 fi
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -90,6 +94,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 	<key>CFBundleName</key><string>Tilt</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
 	<key>CFBundleShortVersionString</key><string>0.1</string>
+	<key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+	<key>NSHumanReadableCopyright</key><string>Copyright © 2026 Myungkeun Song. All rights reserved.</string>
 	<key>CFBundleVersion</key><string>1</string>
 	<key>LSMinimumSystemVersion</key><string>14.0</string>
 	<key>NSHighResolutionCapable</key><true/>
@@ -99,7 +105,12 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 PLIST
 
 swiftc -O -target arm64-apple-macos14.0 $EXTRA main.swift -o "$APP/Contents/MacOS/Tilt"
-codesign --force --sign "$HASH" --timestamp=none "$APP"
+if [ -n "$ENTITLEMENTS" ]; then
+	codesign --force --sign "$HASH" --timestamp=none \
+		--options runtime --entitlements "$ENTITLEMENTS" "$APP"
+else
+	codesign --force --sign "$HASH" --timestamp=none "$APP"
+fi
 case "$APP" in
 	/*) echo "built $APP" ;;
 	*)  echo "built $(pwd)/$APP" ;;
