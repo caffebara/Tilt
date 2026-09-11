@@ -1,0 +1,14 @@
+{
+  "layout": {
+    "README.md": "what the repository is, how to build it, and how it works",
+    "CLAUDE.md": "constraints an agent cannot read off the code",
+    "docs/*.md": "a procedure somebody looks up when they are doing that task",
+    "docs/decisions/*.md": "one decision per file, superseded rather than edited",
+    "THIRD-PARTY-NOTICES.md": "licence notices for material shipped inside the app bundle"
+  },
+  "informative": {},
+  "requirements": {},
+  "decisions": {
+    "dir": "docs/decisions"
+  }
+}

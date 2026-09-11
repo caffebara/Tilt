@@ -58,8 +58,11 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 ./makeicns.sh
 cp AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 # The menu bar glyph. Tabler Icons, MIT licensed: https://tabler.io/icons
-# Swapping the icon means replacing this one file.
+# Swapping the icon means replacing this one file, and its notice below.
 cp MenuIcon.svg "$APP/Contents/Resources/MenuIcon.svg"
+# The MIT licence asks for its notice in the copies, and the README does not
+# travel with the bundle.
+cp THIRD-PARTY-NOTICES.md "$APP/Contents/Resources/THIRD-PARTY-NOTICES.md"
 
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 
