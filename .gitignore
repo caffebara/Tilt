@@ -6,3 +6,9 @@ TiltTest.app/
 AppIcon.icns
 
 .DS_Store
+
+# Xcode
+Tilt.xcodeproj/xcuserdata/
+Tilt.xcodeproj/project.xcworkspace/
+DerivedData/
+*.xcarchive

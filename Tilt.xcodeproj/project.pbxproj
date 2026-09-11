@@ -1,0 +1,243 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5B8747F11AD67EE3C129235C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD73E5E9B488AE21FD4905E7 /* main.swift */; };
+		D14C1F831E423F4444C216AD /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0BA8C1D8BCECC41AEB7A20DB /* AppIcon.icns */; };
+		F9E4E7ED44A96C3EB6186924 /* MenuIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 7E08C1D359D01D3743539C69 /* MenuIcon.svg */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		6D7B969B38859A3AEF75B444 /* Tilt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tilt.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD73E5E9B488AE21FD4905E7 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		83F691F78A6029CBC81216DC /* makeicon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = makeicon.swift; sourceTree = "<group>"; };
+		0BA8C1D8BCECC41AEB7A20DB /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		7E08C1D359D01D3743539C69 /* MenuIcon.svg */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = MenuIcon.svg; sourceTree = "<group>"; };
+		847318E2B36600100B752B21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		74E5A4FEAD28BA45D9EEE9D0 /* Tilt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tilt.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		81CFE6901FA989E76E89A5F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		98B69EEB0B624C85573BF678 = {
+			isa = PBXGroup;
+			children = (
+				AD73E5E9B488AE21FD4905E7 /* main.swift */,
+				83F691F78A6029CBC81216DC /* makeicon.swift */,
+				0BA8C1D8BCECC41AEB7A20DB /* AppIcon.icns */,
+				7E08C1D359D01D3743539C69 /* MenuIcon.svg */,
+				45307AD67F9DD4B5E3409E9A /* Resources */,
+				49A1CB2F82FA17DB9986CC96 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		45307AD67F9DD4B5E3409E9A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				847318E2B36600100B752B21 /* Info.plist */,
+				74E5A4FEAD28BA45D9EEE9D0 /* Tilt.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		49A1CB2F82FA17DB9986CC96 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6D7B969B38859A3AEF75B444 /* Tilt.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D5121C44FB0CC5BA9A0F97EA /* Tilt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 268CF09AAA310540CF825B01 /* Build configuration list for PBXNativeTarget "Tilt" */;
+			buildPhases = (
+				6BC173F6B996400F290DEF6A /* Build the icon */,
+				E1A93F64CCADC4DA018DB53F /* Sources */,
+				81CFE6901FA989E76E89A5F5 /* Frameworks */,
+				B69914039B74F94882E1C992 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Tilt;
+			productName = Tilt;
+			productReference = 6D7B969B38859A3AEF75B444 /* Tilt.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		91E29E319E043A135EC2BCD0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					D5121C44FB0CC5BA9A0F97EA = {
+						CreatedOnToolsVersion = 26.3;
+					};
+				};
+			};
+			buildConfigurationList = 85014DACE33B69D49C5B280A /* Build configuration list for PBXProject "Tilt" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 98B69EEB0B624C85573BF678;
+			productRefGroup = 49A1CB2F82FA17DB9986CC96 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D5121C44FB0CC5BA9A0F97EA /* Tilt */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B69914039B74F94882E1C992 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D14C1F831E423F4444C216AD /* AppIcon.icns in Resources */,
+				F9E4E7ED44A96C3EB6186924 /* MenuIcon.svg in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		6BC173F6B996400F290DEF6A /* Build the icon */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Build the icon";
+			outputPaths = (
+				"$(SRCROOT)/AppIcon.icns",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/makeicns.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E1A93F64CCADC4DA018DB53F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B8747F11AD67EE3C129235C /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A6E163C82F62BF1D8FD2FE90 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FDB70DAD5554D78059BE8BF5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		9ECAF4F929D2FFB737A82A5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Resources/Tilt.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = io.sxong.tilt;
+				PRODUCT_NAME = Tilt;
+			};
+			name = Debug;
+		};
+		959CACEBE44965E32BB99889 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Resources/Tilt.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = io.sxong.tilt;
+				PRODUCT_NAME = Tilt;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		85014DACE33B69D49C5B280A /* Build configuration list for PBXProject "Tilt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A6E163C82F62BF1D8FD2FE90 /* Debug */,
+				FDB70DAD5554D78059BE8BF5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		268CF09AAA310540CF825B01 /* Build configuration list for PBXNativeTarget "Tilt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9ECAF4F929D2FFB737A82A5D /* Debug */,
+				959CACEBE44965E32BB99889 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 91E29E319E043A135EC2BCD0 /* Project object */;
+}

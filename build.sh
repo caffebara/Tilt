@@ -54,55 +54,14 @@ fi
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
-# The icon is generated rather than checked in: it is drawn by makeicon.swift,
-# and regenerating beats keeping a binary in sync with the code that draws it.
-# A supplied AppIcon.png (1024x1024) wins over the drawn one. Delete AppIcon.icns
-# after dropping a new PNG in, or the stale icns is reused.
-if [ ! -f AppIcon.icns ]; then
-	ICONTMP=$(mktemp -d)
-	if [ -f AppIcon.png ]; then
-		echo "building AppIcon.icns from AppIcon.png"
-		cp AppIcon.png "$ICONTMP/icon.png"
-	else
-		echo "drawing AppIcon.icns"
-		swiftc -O makeicon.swift -o "$ICONTMP/makeicon"
-		"$ICONTMP/makeicon" "$ICONTMP/icon.png" > /dev/null
-	fi
-	mkdir -p "$ICONTMP/AppIcon.iconset"
-	for px in 16 32 128 256 512; do
-		sips -z $px $px "$ICONTMP/icon.png" \
-			--out "$ICONTMP/AppIcon.iconset/icon_${px}x${px}.png" > /dev/null
-		sips -z $((px * 2)) $((px * 2)) "$ICONTMP/icon.png" \
-			--out "$ICONTMP/AppIcon.iconset/icon_${px}x${px}@2x.png" > /dev/null
-	done
-	iconutil -c icns "$ICONTMP/AppIcon.iconset" -o AppIcon.icns
-	rm -rf "$ICONTMP"
-fi
+# Shared with the Xcode project, so both builds get the same icon.
+./makeicns.sh
 cp AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 # The menu bar glyph. Tabler Icons, MIT licensed: https://tabler.io/icons
 # Swapping the icon means replacing this one file.
 cp MenuIcon.svg "$APP/Contents/Resources/MenuIcon.svg"
 
-cat > "$APP/Contents/Info.plist" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>CFBundleExecutable</key><string>Tilt</string>
-	<key>CFBundleIconFile</key><string>AppIcon</string>
-	<key>CFBundleIdentifier</key><string>io.sxong.tilt</string>
-	<key>CFBundleName</key><string>Tilt</string>
-	<key>CFBundlePackageType</key><string>APPL</string>
-	<key>CFBundleShortVersionString</key><string>0.1</string>
-	<key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
-	<key>NSHumanReadableCopyright</key><string>Copyright © 2026 Myungkeun Song. All rights reserved.</string>
-	<key>CFBundleVersion</key><string>1</string>
-	<key>LSMinimumSystemVersion</key><string>14.0</string>
-	<key>NSHighResolutionCapable</key><true/>
-	<key>LSUIElement</key><true/>
-</dict>
-</plist>
-PLIST
+cp Resources/Info.plist "$APP/Contents/Info.plist"
 
 swiftc -O -target arm64-apple-macos14.0 $EXTRA main.swift -o "$APP/Contents/MacOS/Tilt"
 if [ -n "$ENTITLEMENTS" ]; then
