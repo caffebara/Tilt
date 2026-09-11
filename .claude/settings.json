@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./build.sh)",
+      "Bash(./build.sh --test)",
+      "Bash(./makeicns.sh)",
+      "Bash(./Tilt.app/Contents/MacOS/Tilt --check)",
+      "Bash(codesign -d:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ]
+  }
+}

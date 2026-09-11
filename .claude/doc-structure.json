@@ -1,7 +1,8 @@
 {
   "layout": {
+    "AGENTS.md": "the source of truth for every agent: constraints none of them can read off the code",
     "README.md": "what the repository is, how to build it, and how it works",
-    "CLAUDE.md": "constraints an agent cannot read off the code",
+    "CLAUDE.md": "the Claude entry point: imports AGENTS.md, plus what is Claude-only",
     "docs/*.md": "a procedure somebody looks up when they are doing that task",
     "docs/decisions/*.md": "one decision per file, superseded rather than edited",
     "THIRD-PARTY-NOTICES.md": "licence notices for material shipped inside the app bundle"
