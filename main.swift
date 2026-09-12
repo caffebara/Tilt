@@ -185,8 +185,10 @@ final class StageView: NSView {
         hint.alignmentMode = .center
         hint.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
         hint.opacity = 0
-        root.addSublayer(hint)
         root.addSublayer(stage)
+        // Above the stage: under it a maximised window hides the caption on the
+        // single engage it is ever shown, and the key burns either way.
+        root.addSublayer(hint)
 
     }
 
@@ -544,7 +546,7 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         let mine = CGWindowID(windowNumber)
         let lifted = content.windows.filter { $0.windowID != mine && $0.isOnScreen }
         filter = SCContentFilter(display: display, including: lifted)
-        filterExcludedSelf = !lifted.isEmpty
+        filterExcludedSelf = true
 
         let configuration = SCStreamConfiguration()
         let scale = nsScreen.backingScaleFactor
@@ -909,8 +911,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         installStatusItem()
-        guard hasScreenRecordingAccess() else { return }
+        // Before the permission guard: these only register notifications, and
+        // installed after it a permission granted later is never picked up.
         installObservers()
+        guard hasScreenRecordingAccess() else { return }
         // Clamshell at launch, or an external display only: the panel this app
         // is about does not exist yet. Everything above is already installed, so
         // opening the lid later reaches displayConfigurationChanged and sets up
