@@ -527,7 +527,7 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
     @MainActor
     private func buildFilter(on nsScreen: NSScreen, excludingWindow windowNumber: Int) async throws {
         let content = try await SCShareableContent.excludingDesktopWindows(
-            false, onScreenWindowsOnly: false)
+            true, onScreenWindowsOnly: true)
         let displayID = (nsScreen.deviceDescription[
             NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value
         // No falling back to whatever display comes first: showing another
