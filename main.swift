@@ -546,7 +546,12 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         let mine = CGWindowID(windowNumber)
         let lifted = content.windows.filter { $0.windowID != mine && $0.isOnScreen }
         filter = SCContentFilter(display: display, including: lifted)
-        filterExcludedSelf = true
+        // Reverted to the original condition. Setting this true unconditionally
+        // caches the prewarm's filter on every path, including the launch-time
+        // one a fast first close reuses, and that is the shape of a reported
+        // fault this machine cannot reproduce. The redundant enumeration it
+        // costs on a bare desktop is a measured price; this is not.
+        filterExcludedSelf = !lifted.isEmpty
 
         let configuration = SCStreamConfiguration()
         let scale = nsScreen.backingScaleFactor
