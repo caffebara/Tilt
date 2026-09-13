@@ -1177,14 +1177,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         Task { @MainActor in
             do {
-                try await capture.start(on: nsScreen, excludingWindow: window.windowNumber)
-                // Only now. The desktop picture is changed only while the overlay
-                // is down, so the start of an engagement is the one moment it can
-                // be stale - but it shares ScreenCaptureKit with the thing that
-                // actually puts pixels up, so it waits until that is running.
+                // Before the stream, not after it. The desktop picture is
+                // changed only while the overlay is down, so the start of an
+                // engagement is the one moment it can be stale. Taken after
+                // start() the shot raced the first frame: show() puts the
+                // overlay on screen between this call's window enumeration and
+                // its screenshot, a window absent from that list cannot be
+                // excluded from the shot, and the still came back with the
+                // overlay's own output baked into it. The windows were then on
+                // screen twice, once flat in the backdrop and once folded over
+                // it, which is decision 002's fault arriving by another road.
                 if let fresh = await capture.captureWallpaper(on: nsScreen) {
                     self.view.setWallpaper(fresh)
                 }
+                try await capture.start(on: nsScreen, excludingWindow: window.windowNumber)
             } catch {
                 // No modal here. disengage() has already cleared `engaged`, the
                 // main queue keeps draining inside a modal run loop, and the
