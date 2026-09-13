@@ -836,13 +836,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var shownDegrees = Int.min
     private var lastGoodSample = Date()
     private var transition = 0
-    /// Set when the user escaped out, or when capture failed. Cleared only by
-    /// opening the lid back past the threshold, so neither turns into a loop
-    /// that re-engages on the very next sample.
-    private var suppressed = false
-    /// Whether the current suppression is the panel's absence rather than a
-    /// sleep or a lock. Only this one is safe to lift when the panel returns.
-    private var suppressedByPanel = false
+    /// Why the overlay is being held off the screen. Empty means armed.
+    ///
+    /// One flag could not carry this. The lid coming back past the threshold has
+    /// to re-arm a dismissal, and with a single flag it re-armed a sleep, a lock
+    /// and a missing panel along with it: locking at an angle and opening again
+    /// could put the overlay over the lock screen, and a panel that came back
+    /// stayed suppressed because nothing here knew why it had been set. Each
+    /// reason is now lifted by the thing that set it.
+    private struct Suppression: OptionSet {
+        let rawValue: Int
+        /// esc or a click while the overlay was up.
+        static let dismissed = Suppression(rawValue: 1 << 0)
+        /// A capture that failed to start.
+        static let capture = Suppression(rawValue: 1 << 1)
+        /// Sleep, lock, or another user taking the session.
+        static let session = Suppression(rawValue: 1 << 2)
+        /// The built-in panel left the screen list: clamshell, or never there.
+        static let panel = Suppression(rawValue: 1 << 3)
+    }
+    private var suppression: Suppression = []
+    private var suppressed: Bool { !suppression.isEmpty }
     private var captureFailure: Error?
     private var lastStep: CFTimeInterval = 0
     private var engaged = false
@@ -973,7 +987,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // the case where escape cannot: a fullscreen app holding the foreground
         // when the lid dips.
         view.onDismiss = { [weak self] in
-            self?.suppressed = true
+            self?.suppression.insert(.dismissed)
             self?.disengage()
         }
 
@@ -982,7 +996,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // flipped the fold direction for the rest of the process's life.
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.engaged, event.keyCode == 53 else { return event }
-            self.suppressed = true
+            self.suppression.insert(.dismissed)
             self.disengage()
             return nil
         }
@@ -1055,7 +1069,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         // 2 degrees of slack: without it a lid resting on the threshold flickers
         // the overlay on and off several times a second.
-        if angle > threshold + 2 { suppressed = false }
+        //
+        // Only what the lid itself is the answer to. A sleep, a lock and a
+        // missing panel are not re-armed by an angle, and lifting those here is
+        // how the overlay reached a lock screen.
+        if angle > threshold + 2 { suppression.subtract([.dismissed, .capture]) }
         if engaged {
             if angle > threshold + 2 || angle < Self.floorDegrees { disengage() }
         } else if enabled, !suppressed, angle < threshold, angle > Self.floorDegrees + 2 {
@@ -1101,7 +1119,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             setUp(on: any)
         }
         guard nsScreen != nil else { return }
-        suppressed = false
+        suppression = []
         demoStart = Date()
     }
 
@@ -1133,7 +1151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // away the app stands down but keeps the reference, and a demo may have
         // borrowed an external one outright. Either way the illusion belongs to
         // the built-in panel, so check the screen rather than trusting the
-        // suppression flag to have caught every route back here.
+        // suppression state to have caught every route back here.
         guard demoStart != nil || nsScreen.map(Self.isBuiltIn) == true else { return }
         engaged = true
         transition += 1
@@ -1167,7 +1185,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 // main queue keeps draining inside a modal run loop, and the
                 // sampler re-enters engage() on the next tick, so an alert here
                 // stacks alerts for as long as the failure lasts.
-                self.suppressed = true
+                self.suppression.insert(.capture)
                 self.captureFailure = error
                 self.disengage()
                 self.rebuildMenu()
@@ -1279,13 +1297,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// Sleep, lock, or another user taking the session. Get off the screen and
     /// stay off, so waking up does not find the overlay already there.
     @objc private func standDown() {
-        suppressed = true
+        suppression.insert(.session)
         disengage()
     }
 
     /// The screen came back, or the session did. Arm again.
     @objc private func standUp() {
-        suppressed = false
+        suppression.remove(.session)
     }
 
     /// Waking lifts that suppression, and it has to.
@@ -1296,7 +1314,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// worth watching, was being skipped because the app was still hiding from a
     /// sleep that had already ended.
     @objc private func systemDidWake() {
-        suppressed = false
+        suppression.remove(.session)
         displayConfigurationChanged()
     }
 
@@ -1315,23 +1333,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// to whatever screen existed at launch, so both are rebuilt from scratch.
     @objc private func displayConfigurationChanged() {
         guard let screen = Self.builtInScreen() else {
-            // The panel went away: clamshell, or it was never there. Stand down
-            // and wait; the observers stay installed.
-            suppressedByPanel = true
-            standDown()
+            // The panel went away: clamshell, or it was never there. Off the
+            // screen and wait; the observers stay installed. Not standDown: its
+            // reason is the session, and this one is lifted by the panel.
+            suppression.insert(.panel)
+            disengage()
             rebuildMenu()
             return
         }
-        // The panel is back, so the thing standDown was hiding from is over.
-        // Nothing else lifts it here: systemDidWake does it for a sleep, but
-        // closing onto an external display is clamshell rather than sleep, so
-        // that never arrives and the suppression only cleared once the lid was
-        // back above the threshold - skipping the whole opening arc. Lift only
-        // what the branch above set, so a sleep or a lock keeps hiding.
-        if suppressedByPanel {
-            suppressedByPanel = false
-            suppressed = false
-        }
+        // The panel is back, so the reason the branch above set is over. Nothing
+        // else lifts it: systemDidWake does it for a sleep, but closing onto an
+        // external display is clamshell rather than sleep, so that never arrives
+        // and the whole opening arc was skipped. A sleep or a lock keeps hiding.
+        suppression.remove(.panel)
         guard window != nil else { // first time the panel has existed
             setUp(on: screen)
             return
@@ -1502,7 +1516,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func retryCapture() {
         captureFailure = nil
-        suppressed = false
+        suppression.remove(.capture)
         capture.invalidateFilter()
         rebuildMenu()
         Task { await capture.prepare(on: nsScreen, excludingWindow: window.windowNumber) }
