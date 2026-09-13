@@ -840,6 +840,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// opening the lid back past the threshold, so neither turns into a loop
     /// that re-engages on the very next sample.
     private var suppressed = false
+    /// Whether the current suppression is the panel's absence rather than a
+    /// sleep or a lock. Only this one is safe to lift when the panel returns.
+    private var suppressedByPanel = false
     private var captureFailure: Error?
     private var lastStep: CFTimeInterval = 0
     private var engaged = false
@@ -1314,9 +1317,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard let screen = Self.builtInScreen() else {
             // The panel went away: clamshell, or it was never there. Stand down
             // and wait; the observers stay installed.
+            suppressedByPanel = true
             standDown()
             rebuildMenu()
             return
+        }
+        // The panel is back, so the thing standDown was hiding from is over.
+        // Nothing else lifts it here: systemDidWake does it for a sleep, but
+        // closing onto an external display is clamshell rather than sleep, so
+        // that never arrives and the suppression only cleared once the lid was
+        // back above the threshold - skipping the whole opening arc. Lift only
+        // what the branch above set, so a sleep or a lock keeps hiding.
+        if suppressedByPanel {
+            suppressedByPanel = false
+            suppressed = false
         }
         guard window != nil else { // first time the panel has existed
             setUp(on: screen)
