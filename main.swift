@@ -70,7 +70,9 @@ final class LidAngleSensor {
         if let fake = try? String(contentsOfFile: "/tmp/tilt-fake-lid", encoding: .utf8) {
             let text = fake.trimmingCharacters(in: .whitespacesAndNewlines)
             if text == "nil" { return nil }
-            if let value = Double(text) { return value }
+            // isFinite, because Double("nan") parses and Int(_:) traps on it:
+            // a typo in the file would take the test build down.
+            if let value = Double(text), value.isFinite { return value }
         }
         #endif
         guard let device else { return nil }
@@ -334,6 +336,9 @@ final class StageView: NSView {
 
         // Projection centred on where the eye now sits, not on the middle of
         // the stage, which is what turns the rotation into a fixed window.
+        // Zero while layout() keeps the screen layer centred, which it does.
+        // Left in rather than folded away so both axes read the same if the
+        // layer ever moves off centre.
         let offsetX = screen.position.x - bounds.midX
         let offsetY = screen.position.y + eyeY - bounds.midY
 
@@ -618,7 +623,14 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         guard !lifted.isEmpty else { return }
         let updated = SCContentFilter(display: display, including: lifted)
         filter = updated
-        try? await stream.updateContentFilter(updated)
+        do {
+            try await stream.updateContentFilter(updated)
+        } catch {
+            // A refused update leaves the panel folding the window list it had.
+            // Drop the cache so the next engagement builds a fresh one rather
+            // than showing a stale desktop for the rest of the session.
+            invalidateFilter()
+        }
     }
 
     @MainActor
@@ -632,7 +644,17 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         Task { try? await stream.stopCapture() }
     }
 
-    enum CaptureError: Error { case noDisplay }
+    enum CaptureError: LocalizedError {
+        case noDisplay
+        case noWallpaper
+
+        var errorDescription: String? {
+            switch self {
+            case .noDisplay: return "the display Tilt draws on went away"
+            case .noWallpaper: return "the desktop picture could not be read"
+            }
+        }
+    }
 
     func stream(_ stopped: SCStream, didStopWithError error: Error) {
         DispatchQueue.main.async { [weak self] in
@@ -1203,8 +1225,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 // it, which is decision 002's fault arriving by another road.
                 if let fresh = await capture.captureWallpaper(on: nsScreen) {
                     self.view.setWallpaper(fresh)
+                    // A shot that arrived retires whatever failed last time.
+                    // Without this the menu offers Try again for the rest of the
+                    // session over a failure that is long over.
+                    self.captureFailure = nil
+                } else {
+                    // A still that did not arrive is the black surround decision
+                    // 002 describes, and it used to happen with nothing said.
+                    self.captureFailure = DesktopCapture.CaptureError.noWallpaper
                 }
                 try await capture.start(on: nsScreen, excludingWindow: window.windowNumber)
+                self.rebuildMenu()
             } catch {
                 // No modal here. disengage() has already cleared `engaged`, the
                 // main queue keeps draining inside a modal run loop, and the
