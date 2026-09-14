@@ -38,6 +38,12 @@ flag.
 could then drive the overlay. That build goes to `$TMPDIR` because built beside the real app it
 appeared in launchers with the same name, icon and bundle id.
 
+**The two build paths differ on architecture, and that is not a bug.** `build.sh` builds arm64 and
+the Xcode archive builds universal, because the project sets no `ARCHS`. Both slices read the
+sensor and pass `--check`, measured through `arch -x86_64`; `docs/app-store.md` has the commands.
+It reads like a slice nobody has run, and pinning the project to arm64 to make the paths agree cuts
+a platform for nothing.
+
 **`com.apple.security.device.usb` is what reads the sensor**, not a USB device. Measured against a
 bundle id with no permission grants: sandbox alone fails `0xE00002CD`, sandbox with that
 entitlement succeeds. Removing it looks harmless and silently kills the app.
