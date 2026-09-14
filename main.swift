@@ -866,7 +866,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var capture: DesktopCapture!
     private var statusItem: NSStatusItem!
     private var escapeMonitor: Any?
-    private var permissionPanel: NSWindow?
+    private var needsScreenRecording = false
     private var sampler: DispatchSourceTimer?
     private var windowRefresh: Timer?
     private let sensorQueue = DispatchQueue(label: "tilt.sensor")
@@ -1489,6 +1489,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             none.isEnabled = false
             menu.addItem(none)
         }
+        if needsScreenRecording {
+            // Two disabled lines and one that acts, in the order a person needs
+            // them: what is wrong, why it is asked for, and where to answer.
+            for line in ["Needs screen recording access",
+                         "Tilt draws your desktop, so macOS counts that as recording",
+                         "Switch it on, then let macOS quit and reopen Tilt"] {
+                let note = NSMenuItem(title: line, action: nil, keyEquivalent: "")
+                note.isEnabled = false
+                menu.addItem(note)
+            }
+            let open = NSMenuItem(title: "Open Screen Recording settings…",
+                                  action: #selector(openScreenRecordingSettings),
+                                  keyEquivalent: "")
+            open.target = self
+            menu.addItem(open)
+        }
 
         menu.addItem(.separator())
         add(SliderRow(title: "Engage below", range: 40...120, step: 5, value: threshold,
@@ -1581,58 +1597,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: permission
 
     /// Settle screen recording before anything is drawn. The overlay sits above
-    /// every window including the system's own permission dialog, so asking
-    /// afterwards shows a black rectangle over a prompt nobody can see - and the
-    /// grant only reaches a fresh process anyway, so the answer is a relaunch.
+    /// everything, so a refusal has to be known before the first fold rather
+    /// than discovered as a black screen.
+    ///
+    /// No window of our own. macOS puts its own dialog up for this, and a second
+    /// one beside it asking for the same permission is two windows for one
+    /// answer. What the system does not say - why an app about a hinge wants the
+    /// screen, and that the permission reaches a launch rather than a process -
+    /// goes in the menu, which is where this app keeps the rest of its state and
+    /// is one click from the icon that just appeared.
     private func hasScreenRecordingAccess() -> Bool {
         if CGPreflightScreenCaptureAccess() { return true }
+        // Asking is also what puts Tilt in the Screen Recording list; without it
+        // there is no row for anyone to switch on.
         CGRequestScreenCaptureAccess()
-
-        let text = NSTextField(wrappingLabelWithString:
-            "Tilt draws your own desktop, so macOS treats it as screen recording.\n\n"
-            + "Switch Tilt on under Screen & System Audio Recording. macOS offers "
-            + "to quit and reopen Tilt once you do; take it. The permission "
-            + "reaches a launch rather than a process, and an app already running "
-            + "is never told that it arrived.")
-        text.font = .systemFont(ofSize: 13)
-        text.frame = NSRect(x: 24, y: 66, width: 392, height: 130)
-
-        let button = NSButton(title: "Open System Settings", target: self,
-                              action: #selector(openScreenRecordingSettings))
-        button.bezelStyle = .rounded
-        button.frame = NSRect(x: 246, y: 20, width: 176, height: 30)
-
-        let panel = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 220),
-                             styleMask: [.titled, .closable],
-                             backing: .buffered, defer: false)
-        panel.title = "Tilt needs screen recording access"
-        panel.isReleasedWhenClosed = false
-        panel.contentView?.addSubview(text)
-        panel.contentView?.addSubview(button)
-        panel.center()
-        // Below the system's own dialog rather than on top of it. macOS puts its
-        // prompt a little above centre, and this one is 220 tall, so dropping it
-        // clears the overlap without leaving the screen on any usual size.
-        var placed = panel.frame
-        placed.origin.y -= placed.height + 40
-        if let visible = NSScreen.main?.visibleFrame, placed.minY < visible.minY {
-            placed.origin.y = visible.minY + 20
-        }
-        panel.setFrame(placed, display: false)
-        // Floating, because macOS may refuse an app's request to come forward
-        // and this window is the only route left to the setting.
-        panel.level = .floating
-        permissionPanel = panel
-
-        // After the system prompt, not with it. Both windows are about the one
-        // permission, and the system's is the one that actually grants it, so it
-        // gets the screen to itself first. Shown together they landed on top of
-        // each other and the window explaining why was the one underneath.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
-            guard let panel = self?.permissionPanel else { return }
-            NSApp.activate(ignoringOtherApps: true)
-            panel.makeKeyAndOrderFront(nil)
-        }
+        needsScreenRecording = true
+        rebuildMenu()
         return false
     }
 
