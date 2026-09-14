@@ -7,10 +7,10 @@
 	<true/>
 
 	<!-- The lid angle sensor is a HID device, and IOKit HID access is gated by
-	     this entitlement. Measured: with the sandbox and without it,
-	     IOHIDManagerOpen returns 0xE00002E2 (not permitted) and the sensor
-	     cannot be read at all. ScreenCaptureKit needs nothing here; it is
-	     gated by the screen recording permission instead. -->
+	     this entitlement. Measured: with the sandbox and without this
+	     entitlement, IOHIDManagerOpen returns 0xE00002E2 (not permitted) and
+	     the sensor cannot be read at all. ScreenCaptureKit needs nothing here;
+	     it is gated by the screen recording permission instead. -->
 	<key>com.apple.security.device.usb</key>
 	<true/>
 </dict>

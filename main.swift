@@ -21,14 +21,28 @@ final class LidAngleSensor {
 
     init() {
         manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-        IOHIDManagerSetDeviceMatching(manager, nil)
+        // Ask for the sensor and nothing else. Matching nil claims every HID
+        // device on the machine, the keyboard among them, and macOS answers that
+        // by asking the user for input monitoring - a keystroke prompt on an app
+        // that reads a hinge. Measured 2026-09-14 on Mac15,10: nil raises the
+        // prompt with no window on screen at all, this dictionary raises none and
+        // still matches exactly one device, which answers report 1 with the lid
+        // angle.
+        //
+        // A dictionary was tried before and fell through to every HID device.
+        // The keys are why: a matching dictionary takes DeviceUsagePage and
+        // DeviceUsage, while the hand check below reads PrimaryUsagePage and
+        // PrimaryUsage. They are different keys, and the wrong pair matches
+        // nothing, which IOKit treats as matching everything.
+        IOHIDManagerSetDeviceMatching(manager, [
+            kIOHIDDeviceUsagePageKey: 0x20,
+            kIOHIDDeviceUsageKey: 0x8A,
+        ] as CFDictionary)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         let all = (IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice>) ?? []
 
-        // Match by hand rather than by a matching dictionary, and only accept a
-        // device that actually answers the report - on Mac15,10 a dictionary
-        // match silently fell through to every HID device, and `first` on the
-        // resulting set picked the keyboard.
+        // Still checked by hand, and still only a device that answers the report.
+        // The dictionary narrows the field; this is what proves the sensor.
         device = all.first { candidate in
             let page = IOHIDDeviceGetProperty(candidate, kIOHIDPrimaryUsagePageKey as CFString) as? Int
             let usage = IOHIDDeviceGetProperty(candidate, kIOHIDPrimaryUsageKey as CFString) as? Int
@@ -56,7 +70,9 @@ final class LidAngleSensor {
         if let fake = try? String(contentsOfFile: "/tmp/tilt-fake-lid", encoding: .utf8) {
             let text = fake.trimmingCharacters(in: .whitespacesAndNewlines)
             if text == "nil" { return nil }
-            if let value = Double(text) { return value }
+            // isFinite, because Double("nan") parses and Int(_:) traps on it:
+            // a typo in the file would take the test build down.
+            if let value = Double(text), value.isFinite { return value }
         }
         #endif
         guard let device else { return nil }
@@ -185,8 +201,10 @@ final class StageView: NSView {
         hint.alignmentMode = .center
         hint.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
         hint.opacity = 0
-        root.addSublayer(hint)
         root.addSublayer(stage)
+        // Above the stage: under it a maximised window hides the caption on the
+        // single engage it is ever shown, and the key burns either way.
+        root.addSublayer(hint)
 
     }
 
@@ -318,6 +336,9 @@ final class StageView: NSView {
 
         // Projection centred on where the eye now sits, not on the middle of
         // the stage, which is what turns the rotation into a fixed window.
+        // Zero while layout() keeps the screen layer centred, which it does.
+        // Left in rather than folded away so both axes read the same if the
+        // layer ever moves off centre.
         let offsetX = screen.position.x - bounds.midX
         let offsetY = screen.position.y + eyeY - bounds.midY
 
@@ -527,7 +548,7 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
     @MainActor
     private func buildFilter(on nsScreen: NSScreen, excludingWindow windowNumber: Int) async throws {
         let content = try await SCShareableContent.excludingDesktopWindows(
-            false, onScreenWindowsOnly: false)
+            true, onScreenWindowsOnly: true)
         let displayID = (nsScreen.deviceDescription[
             NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value
         // No falling back to whatever display comes first: showing another
@@ -544,6 +565,11 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         let mine = CGWindowID(windowNumber)
         let lifted = content.windows.filter { $0.windowID != mine && $0.isOnScreen }
         filter = SCContentFilter(display: display, including: lifted)
+        // Reverted to the original condition. Setting this true unconditionally
+        // caches the prewarm's filter on every path, including the launch-time
+        // one a fast first close reuses, and that is the shape of a reported
+        // fault this machine cannot reproduce. The redundant enumeration it
+        // costs on a bare desktop is a measured price; this is not.
         filterExcludedSelf = !lifted.isEmpty
 
         let configuration = SCStreamConfiguration()
@@ -597,7 +623,14 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         guard !lifted.isEmpty else { return }
         let updated = SCContentFilter(display: display, including: lifted)
         filter = updated
-        try? await stream.updateContentFilter(updated)
+        do {
+            try await stream.updateContentFilter(updated)
+        } catch {
+            // A refused update leaves the panel folding the window list it had.
+            // Drop the cache so the next engagement builds a fresh one rather
+            // than showing a stale desktop for the rest of the session.
+            invalidateFilter()
+        }
     }
 
     @MainActor
@@ -611,7 +644,17 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         Task { try? await stream.stopCapture() }
     }
 
-    enum CaptureError: Error { case noDisplay }
+    enum CaptureError: LocalizedError {
+        case noDisplay
+        case noWallpaper
+
+        var errorDescription: String? {
+            switch self {
+            case .noDisplay: return "the display Tilt draws on went away"
+            case .noWallpaper: return "the desktop picture could not be read"
+            }
+        }
+    }
 
     func stream(_ stopped: SCStream, didStopWithError error: Error) {
         DispatchQueue.main.async { [weak self] in
@@ -713,13 +756,13 @@ final class SliderRow: NSView {
 
         let label = NSTextField(labelWithString: title)
         label.font = .menuFont(ofSize: 13)
-        label.frame = NSRect(x: 20, y: 34, width: 180, height: 17)
+        label.frame = NSRect(x: 16, y: 34, width: 180, height: 17)
         addSubview(label)
 
         readout.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
         readout.textColor = .secondaryLabelColor
         readout.alignment = .right
-        readout.frame = NSRect(x: 190, y: 35, width: 92, height: 14) // +2 for its alignment inset
+        readout.frame = NSRect(x: 194, y: 35, width: 92, height: 14) // +2 for its alignment inset
         addSubview(readout)
 
         slider.minValue = range.lowerBound
@@ -732,7 +775,7 @@ final class SliderRow: NSView {
         slider.controlSize = .small
         slider.target = target
         slider.action = action
-        slider.frame = NSRect(x: 20, y: 6, width: 260, height: 22)
+        slider.frame = NSRect(x: 16, y: 6, width: 268, height: 22)
         addSubview(slider)
 
         refresh()
@@ -758,7 +801,7 @@ final class SegmentRow: NSView {
 
         let label = NSTextField(labelWithString: title)
         label.font = .menuFont(ofSize: 13)
-        label.frame = NSRect(x: 20, y: 34, width: 260, height: 17)
+        label.frame = NSRect(x: 16, y: 34, width: 268, height: 17)
         addSubview(label)
 
         segments.segmentCount = labels.count
@@ -775,7 +818,7 @@ final class SegmentRow: NSView {
             .min { abs($0.element - current) < abs($1.element - current) }?.offset ?? 0
         segments.target = target
         segments.action = action
-        segments.frame = NSRect(x: 20, y: 6, width: 260, height: 24)
+        segments.frame = NSRect(x: 16, y: 6, width: 268, height: 24)
         addSubview(segments)
     }
 
@@ -784,6 +827,30 @@ final class SegmentRow: NSView {
 
 /// A labelled switch, sized to sit inside an NSMenuItem. The on/off state of the
 /// whole app is a toggle, and a checkmark beside a word is a weaker way to say so.
+/// One paragraph, wrapped, at the width the other rows use. Three disabled
+/// items in a row read as a wall of text in a menu; a menu item is a line, and
+/// prose that needs more than one belongs in one view rather than stacked.
+final class NoteRow: NSView {
+    init(_ text: String) {
+        super.init(frame: NSRect(x: 0, y: 0, width: 300, height: 0))
+        let label = NSTextField(wrappingLabelWithString: text)
+        label.font = .menuFont(ofSize: 12)
+        label.textColor = .secondaryLabelColor
+        label.isSelectable = false
+        // The width has to be settled before the height is asked for. sizeToFit
+        // on a wrapping label widens it to one line instead of wrapping, which
+        // is the whole point of the row.
+        label.preferredMaxLayoutWidth = 268
+        let height = label.sizeThatFits(
+            NSSize(width: 268, height: CGFloat.greatestFiniteMagnitude)).height
+        label.frame = NSRect(x: 16, y: 8, width: 268, height: height)
+        addSubview(label)
+        setFrameSize(NSSize(width: 300, height: height + 16))
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+}
+
 final class SwitchRow: NSView {
     let toggle = NSSwitch()
 
@@ -792,7 +859,7 @@ final class SwitchRow: NSView {
 
         let label = NSTextField(labelWithString: title)
         label.font = .menuFont(ofSize: 13)
-        label.frame = NSRect(x: 20, y: 9, width: 160, height: 17)
+        label.frame = NSRect(x: 16, y: 9, width: 160, height: 17)
         addSubview(label)
 
         toggle.state = isOn ? .on : .off
@@ -802,7 +869,7 @@ final class SwitchRow: NSView {
         toggle.target = target
         toggle.action = action
         toggle.sizeToFit()
-        toggle.setFrameOrigin(NSPoint(x: 280 - toggle.frame.width,
+        toggle.setFrameOrigin(NSPoint(x: 284 - toggle.frame.width,
                                       y: (34 - toggle.frame.height) / 2))
         addSubview(toggle)
     }
@@ -823,7 +890,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var capture: DesktopCapture!
     private var statusItem: NSStatusItem!
     private var escapeMonitor: Any?
-    private var permissionPanel: NSWindow?
+    private var needsScreenRecording = false
     private var sampler: DispatchSourceTimer?
     private var windowRefresh: Timer?
     private let sensorQueue = DispatchQueue(label: "tilt.sensor")
@@ -834,10 +901,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var shownDegrees = Int.min
     private var lastGoodSample = Date()
     private var transition = 0
-    /// Set when the user escaped out, or when capture failed. Cleared only by
-    /// opening the lid back past the threshold, so neither turns into a loop
-    /// that re-engages on the very next sample.
-    private var suppressed = false
+    /// Why the overlay is being held off the screen. Empty means armed.
+    ///
+    /// One flag could not carry this. The lid coming back past the threshold has
+    /// to re-arm a dismissal, and with a single flag it re-armed a sleep, a lock
+    /// and a missing panel along with it: locking at an angle and opening again
+    /// could put the overlay over the lock screen, and a panel that came back
+    /// stayed suppressed because nothing here knew why it had been set. Each
+    /// reason is now lifted by the thing that set it.
+    private struct Suppression: OptionSet {
+        let rawValue: Int
+        /// esc or a click while the overlay was up.
+        static let dismissed = Suppression(rawValue: 1 << 0)
+        /// A capture that failed to start.
+        static let capture = Suppression(rawValue: 1 << 1)
+        /// Sleep, lock, or another user taking the session.
+        static let session = Suppression(rawValue: 1 << 2)
+        /// The built-in panel left the screen list: clamshell, or never there.
+        static let panel = Suppression(rawValue: 1 << 3)
+    }
+    private var suppression: Suppression = []
+    private var suppressed: Bool { !suppression.isEmpty }
     private var captureFailure: Error?
     private var lastStep: CFTimeInterval = 0
     private var engaged = false
@@ -868,11 +952,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let hintShownKey = "dismissHintShown"
     private static let glassKey = "glassIntensity"
     private static let distanceKey = "viewingDistanceCm"
+    private static let showsAngleKey = "showsAngleInMenuBar"
 
     private var enabled: Bool {
         didSet {
             UserDefaults.standard.set(enabled, forKey: Self.enabledKey)
             if !enabled { disengage() }
+        }
+    }
+
+    /// On by default, and worth keeping that way: the number is the only sign
+    /// from outside that the sensor is being read at all. With it off a working
+    /// app and a dead one look the same in the menu bar.
+    private var showsAngle: Bool {
+        didSet {
+            UserDefaults.standard.set(showsAngle, forKey: Self.showsAngleKey)
+            shownDegrees = Int.min          // force the next sample to redraw
+            statusItem.button?.title = ""
         }
     }
 
@@ -904,13 +1000,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         glass = UserDefaults.standard.object(forKey: Self.glassKey) as? Double ?? 0.65
         distanceCm = UserDefaults.standard.object(forKey: Self.distanceKey) as? Double ?? 55
         enabled = UserDefaults.standard.object(forKey: Self.enabledKey) as? Bool ?? true
+        showsAngle = UserDefaults.standard.object(forKey: Self.showsAngleKey) as? Bool ?? true
         super.init()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         installStatusItem()
-        guard hasScreenRecordingAccess() else { return }
+        // Before the permission guard: these only register notifications, and
+        // installed after it a permission granted later is never picked up.
         installObservers()
+        guard hasScreenRecordingAccess() else { return }
         // Clamshell at launch, or an external display only: the panel this app
         // is about does not exist yet. Everything above is already installed, so
         // opening the lid later reaches displayConfigurationChanged and sets up
@@ -966,7 +1065,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // the case where escape cannot: a fullscreen app holding the foreground
         // when the lid dips.
         view.onDismiss = { [weak self] in
-            self?.suppressed = true
+            self?.suppression.insert(.dismissed)
             self?.disengage()
         }
 
@@ -975,7 +1074,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // flipped the fold direction for the rest of the process's life.
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.engaged, event.keyCode == 53 else { return event }
-            self.suppressed = true
+            self.suppression.insert(.dismissed)
             self.disengage()
             return nil
         }
@@ -1018,18 +1117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// One HID sample. Decides engagement; the smoothing happens per frame.
     private func sample(_ sensorAngle: Double?) {
-        var angle = sensorAngle
-        if let start = demoStart {
-            let elapsed = Date().timeIntervalSince(start)
-            if elapsed < Self.demoSeconds {
-                angle = demoAngle(at: elapsed)
-            } else {
-                // Ends wide open on purpose: that is above the threshold, so the
-                // same rule that lets go of a real lid lets go of this one.
-                demoStart = nil
-                angle = min(130, threshold + 20)
-            }
-        }
+        let angle = sensorAngle
         // A sensor that stops answering used to mean the last angle stood
         // forever: open the lid with the overlay up and it would keep covering
         // the screen. Silence for long enough is a reason to get out of the way.
@@ -1042,13 +1130,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         lastGoodSample = Date()
         rawLid = angle
         let degrees = Int(angle.rounded())
-        if degrees != shownDegrees {
+        if degrees != shownDegrees, showsAngle {
             shownDegrees = degrees
             statusItem.button?.title = " \(degrees)°"
         }
         // 2 degrees of slack: without it a lid resting on the threshold flickers
         // the overlay on and off several times a second.
-        if angle > threshold + 2 { suppressed = false }
+        //
+        // Only what the lid itself is the answer to. A sleep, a lock and a
+        // missing panel are not re-armed by an angle, and lifting those here is
+        // how the overlay reached a lock screen.
+        if angle > threshold + 2 { suppression.subtract([.dismissed, .capture]) }
         if engaged {
             if angle > threshold + 2 || angle < Self.floorDegrees { disengage() }
         } else if enabled, !suppressed, angle < threshold, angle > Self.floorDegrees + 2 {
@@ -1078,42 +1170,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         view.setLid(smoothLid)
     }
 
-    // MARK: demo
-
-    /// A Mac with no lid sensor, or no lid at all, can never show what this app
-    /// does: the switch is live, the sliders move, and nothing ever happens.
-    /// App Review runs on exactly that hardware. The demo drives the angle
-    /// through one close and open so the effect can be seen without a hinge.
-    private var demoStart: Date?
-    private static let demoSeconds = 9.0
-
-    @objc private func runDemo() {
-        // No built-in panel: a Mac mini, a VM, or a lid that is shut. A demo is
-        // not pretending the panel is turning, so any screen will do for it.
-        if nsScreen == nil, let any = NSScreen.main {
-            setUp(on: any)
-        }
-        guard nsScreen != nil else { return }
-        suppressed = false
-        demoStart = Date()
-    }
-
-    /// Down to nearly shut, a hold, then back open. Eased, because the point is
-    /// to look like a lid rather than like a slider being dragged.
-    private func demoAngle(at elapsed: Double) -> Double {
-        let open = min(130, threshold + 20)
-        let shut = Self.floorDegrees + 8
-        let t = elapsed / Self.demoSeconds
-        let phase: Double
-        switch t {
-        case ..<0.35: phase = t / 0.35
-        case ..<0.65: phase = 1
-        default: phase = (1 - t) / 0.35
-        }
-        let eased = (1 - cos(min(1, max(0, phase)) * .pi)) / 2
-        return open + (shut - open) * eased
-    }
-
     // MARK: engage / disengage
 
     /// The window waits for the first captured frame. Ordering it front here
@@ -1123,11 +1179,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func engage() {
         guard !engaged else { return }
         // nsScreen outlives the screen it names: when the built-in panel goes
-        // away the app stands down but keeps the reference, and a demo may have
-        // borrowed an external one outright. Either way the illusion belongs to
-        // the built-in panel, so check the screen rather than trusting the
-        // suppression flag to have caught every route back here.
-        guard demoStart != nil || nsScreen.map(Self.isBuiltIn) == true else { return }
+        // away the app stands down but keeps the reference, and several paths
+        // clear the suppression independently, so check the screen itself rather
+        // than trusting the state to have caught every route back here.
+        guard nsScreen.map(Self.isBuiltIn) == true else { return }
         engaged = true
         transition += 1
         smoothLid = rawLid // start exactly where the lid is, not where it was
@@ -1147,20 +1202,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         Task { @MainActor in
             do {
-                try await capture.start(on: nsScreen, excludingWindow: window.windowNumber)
-                // Only now. The desktop picture is changed only while the overlay
-                // is down, so the start of an engagement is the one moment it can
-                // be stale - but it shares ScreenCaptureKit with the thing that
-                // actually puts pixels up, so it waits until that is running.
+                // Before the stream, not after it. The desktop picture is
+                // changed only while the overlay is down, so the start of an
+                // engagement is the one moment it can be stale. Taken after
+                // start() the shot raced the first frame: show() puts the
+                // overlay on screen between this call's window enumeration and
+                // its screenshot, a window absent from that list cannot be
+                // excluded from the shot, and the still came back with the
+                // overlay's own output baked into it. The windows were then on
+                // screen twice, once flat in the backdrop and once folded over
+                // it, which is decision 002's fault arriving by another road.
                 if let fresh = await capture.captureWallpaper(on: nsScreen) {
                     self.view.setWallpaper(fresh)
+                    // A shot that arrived retires whatever failed last time.
+                    // Without this the menu offers Try again for the rest of the
+                    // session over a failure that is long over.
+                    self.captureFailure = nil
+                } else {
+                    // A still that did not arrive is the black surround decision
+                    // 002 describes, and it used to happen with nothing said.
+                    self.captureFailure = DesktopCapture.CaptureError.noWallpaper
                 }
+                try await capture.start(on: nsScreen, excludingWindow: window.windowNumber)
+                self.rebuildMenu()
             } catch {
                 // No modal here. disengage() has already cleared `engaged`, the
                 // main queue keeps draining inside a modal run loop, and the
                 // sampler re-enters engage() on the next tick, so an alert here
                 // stacks alerts for as long as the failure lasts.
-                self.suppressed = true
+                self.suppression.insert(.capture)
                 self.captureFailure = error
                 self.disengage()
                 self.rebuildMenu()
@@ -1272,13 +1342,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// Sleep, lock, or another user taking the session. Get off the screen and
     /// stay off, so waking up does not find the overlay already there.
     @objc private func standDown() {
-        suppressed = true
+        suppression.insert(.session)
         disengage()
     }
 
     /// The screen came back, or the session did. Arm again.
     @objc private func standUp() {
-        suppressed = false
+        suppression.remove(.session)
     }
 
     /// Waking lifts that suppression, and it has to.
@@ -1289,7 +1359,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// worth watching, was being skipped because the app was still hiding from a
     /// sleep that had already ended.
     @objc private func systemDidWake() {
-        suppressed = false
+        suppression.remove(.session)
         displayConfigurationChanged()
     }
 
@@ -1308,12 +1378,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// to whatever screen existed at launch, so both are rebuilt from scratch.
     @objc private func displayConfigurationChanged() {
         guard let screen = Self.builtInScreen() else {
-            // The panel went away: clamshell, or it was never there. Stand down
-            // and wait; the observers stay installed.
-            standDown()
+            // The panel went away: clamshell, or it was never there. Off the
+            // screen and wait; the observers stay installed. Not standDown: its
+            // reason is the session, and this one is lifted by the panel.
+            suppression.insert(.panel)
+            disengage()
             rebuildMenu()
             return
         }
+        // The panel is back, so the reason the branch above set is over. Nothing
+        // else lifts it: systemDidWake does it for a sleep, but closing onto an
+        // external display is clamshell rather than sleep, so that never arrives
+        // and the whole opening arc was skipped. A sleep or a lock keeps hiding.
+        suppression.remove(.panel)
         guard window != nil else { // first time the panel has existed
             setUp(on: screen)
             return
@@ -1384,6 +1461,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func populate(_ menu: NSMenu) {
         menu.removeAllItems()
 
+        // Nothing to set up with until the permission is there: the switch, the
+        // sliders and the glass all drive an overlay that cannot draw. Show what
+        // finishes setup and nothing else.
+        if needsScreenRecording {
+            let note = NSMenuItem()
+            note.view = NoteRow(
+                "Tilt draws your desktop, so macOS counts that as screen "
+                + "recording. Switch it on, then let macOS quit and reopen Tilt.")
+            menu.addItem(note)
+            let open = NSMenuItem(title: "Open Screen Recording settings…",
+                                  action: #selector(openScreenRecordingSettings),
+                                  keyEquivalent: "")
+            open.target = self
+            menu.addItem(open)
+            menu.addItem(.separator())
+            addQuit(to: menu)
+            return
+        }
+
         let onOff = NSMenuItem()
         onOff.view = SwitchRow(title: "Enabled", isOn: enabled,
                                target: self, action: #selector(enabledSwitched(_:)))
@@ -1418,12 +1514,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         glassItem.view = glassRow
         menu.addItem(glassItem)
 
-        menu.addItem(.separator())
-        let demo = NSMenuItem(title: demoStart == nil ? "Run Demo" : "Demo running...",
-                              action: #selector(runDemo), keyEquivalent: "")
-        demo.target = self
-        demo.isEnabled = demoStart == nil
-        menu.addItem(demo)
+        let angleRow = NSMenuItem()
+        angleRow.view = SwitchRow(title: "Show angle in menu bar", isOn: showsAngle,
+                                  target: self, action: #selector(showsAngleSwitched(_:)))
+        menu.addItem(angleRow)
+
 
         if let captureFailure {
             menu.addItem(.separator())
@@ -1439,10 +1534,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         menu.addItem(.separator())
-        let quit = NSMenuItem(title: "Quit Tilt", action: #selector(NSApplication.terminate(_:)),
+        addQuit(to: menu)
+    }
+
+    private func addQuit(to menu: NSMenu) {
+        // Our own selector rather than NSApplication.terminate on NSApp. Pointed
+        // at the application object the row drew a symbol of its own in the
+        // state column, which is where a checkmark goes, so the title sat a
+        // glyph's width right of every other line in the menu.
+        let quit = NSMenuItem(title: "Quit Tilt", action: #selector(quitTilt),
                               keyEquivalent: "q")
-        quit.target = NSApp
+        quit.target = self
         menu.addItem(quit)
+    }
+
+    @objc private func quitTilt() {
+        NSApp.terminate(nil)
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
@@ -1465,6 +1572,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         enabled = sender.state == .on
     }
 
+    @objc private func showsAngleSwitched(_ sender: NSSwitch) {
+        showsAngle = sender.state == .on
+    }
+
     @objc private func thresholdSlid(_ sender: NSSlider) {
         threshold = sender.doubleValue.rounded()
         (sender.superview as? SliderRow)?.refresh()
@@ -1484,7 +1595,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func retryCapture() {
         captureFailure = nil
-        suppressed = false
+        suppression.remove(.capture)
         capture.invalidateFilter()
         rebuildMenu()
         Task { await capture.prepare(on: nsScreen, excludingWindow: window.windowNumber) }
@@ -1493,40 +1604,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: permission
 
     /// Settle screen recording before anything is drawn. The overlay sits above
-    /// every window including the system's own permission dialog, so asking
-    /// afterwards shows a black rectangle over a prompt nobody can see - and the
-    /// grant only reaches a fresh process anyway, so the answer is a relaunch.
+    /// everything, so a refusal has to be known before the first fold rather
+    /// than discovered as a black screen.
+    ///
+    /// No window of our own. macOS puts its own dialog up for this, and a second
+    /// one beside it asking for the same permission is two windows for one
+    /// answer. What the system does not say - why an app about a hinge wants the
+    /// screen, and that the permission reaches a launch rather than a process -
+    /// goes in the menu, which is where this app keeps the rest of its state and
+    /// is one click from the icon that just appeared.
     private func hasScreenRecordingAccess() -> Bool {
         if CGPreflightScreenCaptureAccess() { return true }
+        // Asking is also what puts Tilt in the Screen Recording list; without it
+        // there is no row for anyone to switch on.
         CGRequestScreenCaptureAccess()
-
-        let text = NSTextField(wrappingLabelWithString:
-            "Tilt draws your own desktop, so macOS treats it as screen recording.\n\n"
-            + "Switch Tilt on under Screen & System Audio Recording, then quit Tilt "
-            + "from the menu bar and open it again. The permission only reaches a "
-            + "fresh launch.")
-        text.font = .systemFont(ofSize: 13)
-        text.frame = NSRect(x: 24, y: 66, width: 392, height: 130)
-
-        let button = NSButton(title: "Open System Settings", target: self,
-                              action: #selector(openScreenRecordingSettings))
-        button.bezelStyle = .rounded
-        button.frame = NSRect(x: 246, y: 20, width: 176, height: 30)
-
-        let panel = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 220),
-                             styleMask: [.titled, .closable],
-                             backing: .buffered, defer: false)
-        panel.title = "Tilt needs screen recording access"
-        panel.isReleasedWhenClosed = false
-        panel.contentView?.addSubview(text)
-        panel.contentView?.addSubview(button)
-        panel.center()
-        // Floating, because macOS may refuse an app's request to come forward
-        // and this window is the only route left to the setting.
-        panel.level = .floating
-        permissionPanel = panel
-        NSApp.activate(ignoringOtherApps: true)
-        panel.makeKeyAndOrderFront(nil)
+        needsScreenRecording = true
+        rebuildMenu()
         return false
     }
 

@@ -8,7 +8,7 @@ front of it. Open the lid back past the threshold and everything goes away.
 
 ## Requirements
 
-- A MacBook with a lid angle sensor (2019 and later)
+- An Apple silicon MacBook with a lid angle sensor
 - macOS 14 or later
 - Screen recording permission, which macOS asks for on first launch
 

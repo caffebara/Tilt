@@ -45,7 +45,7 @@ if [ "${1:-}" = "--test" ]; then
 	# Outside the project on purpose. Built here it turned up in launchers beside
 	# the real app, with the same name, icon and bundle id, and the only way to
 	# tell them apart was the path.
-	APP="${TMPDIR:-/tmp}TiltTest.app"
+	APP="${TMPDIR:-/tmp/}TiltTest.app"
 	EXTRA="-D TILT_TEST_HOOK"
 	# Unsandboxed on purpose: the fake lid angle is read from /tmp, which the
 	# container would hide, and the point of this build is to drive transitions.
