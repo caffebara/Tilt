@@ -21,14 +21,28 @@ final class LidAngleSensor {
 
     init() {
         manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-        IOHIDManagerSetDeviceMatching(manager, nil)
+        // Ask for the sensor and nothing else. Matching nil claims every HID
+        // device on the machine, the keyboard among them, and macOS answers that
+        // by asking the user for input monitoring - a keystroke prompt on an app
+        // that reads a hinge. Measured 2026-09-14 on Mac15,10: nil raises the
+        // prompt with no window on screen at all, this dictionary raises none and
+        // still matches exactly one device, which answers report 1 with the lid
+        // angle.
+        //
+        // A dictionary was tried before and fell through to every HID device.
+        // The keys are why: a matching dictionary takes DeviceUsagePage and
+        // DeviceUsage, while the hand check below reads PrimaryUsagePage and
+        // PrimaryUsage. They are different keys, and the wrong pair matches
+        // nothing, which IOKit treats as matching everything.
+        IOHIDManagerSetDeviceMatching(manager, [
+            kIOHIDDeviceUsagePageKey: 0x20,
+            kIOHIDDeviceUsageKey: 0x8A,
+        ] as CFDictionary)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         let all = (IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice>) ?? []
 
-        // Match by hand rather than by a matching dictionary, and only accept a
-        // device that actually answers the report - on Mac15,10 a dictionary
-        // match silently fell through to every HID device, and `first` on the
-        // resulting set picked the keyboard.
+        // Still checked by hand, and still only a device that answers the report.
+        // The dictionary narrows the field; this is what proves the sensor.
         device = all.first { candidate in
             let page = IOHIDDeviceGetProperty(candidate, kIOHIDPrimaryUsagePageKey as CFString) as? Int
             let usage = IOHIDDeviceGetProperty(candidate, kIOHIDPrimaryUsageKey as CFString) as? Int
