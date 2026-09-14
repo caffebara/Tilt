@@ -41,8 +41,13 @@ Worth writing in the review notes, since the review machine may have no lid at a
 > in that position. The only key handling is a local monitor, which sees nothing but events
 > already dispatched to Tilt and passes every one of them through untouched except escape.
 > Measured with the permission switched off: escape still dismisses the overlay, and so does a
-> click. The prompt can be denied and nothing is lost. On a Mac with no lid angle sensor or no
-> built-in display, choose Run Demo from the menu bar item to see the effect.
+> click. The prompt can be denied and nothing is lost.
+>
+> On a Mac with no lid angle sensor, or with the lid shut and an external display, Tilt does
+> nothing at all, and its menu says which of the two it is: "No lid angle sensor on this Mac" or
+> "Waiting for the built-in display". That is the app working correctly rather than failing. It
+> reads a MacBook hinge, so hardware without one has nothing for it to read. Decision 005 in the
+> repository records why there is no demo mode to show the effect instead.
 
 ## Known risks
 

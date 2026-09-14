@@ -1080,18 +1080,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// One HID sample. Decides engagement; the smoothing happens per frame.
     private func sample(_ sensorAngle: Double?) {
-        var angle = sensorAngle
-        if let start = demoStart {
-            let elapsed = Date().timeIntervalSince(start)
-            if elapsed < Self.demoSeconds {
-                angle = demoAngle(at: elapsed)
-            } else {
-                // Ends wide open on purpose: that is above the threshold, so the
-                // same rule that lets go of a real lid lets go of this one.
-                demoStart = nil
-                angle = min(130, threshold + 20)
-            }
-        }
+        let angle = sensorAngle
         // A sensor that stops answering used to mean the last angle stood
         // forever: open the lid with the overlay up and it would keep covering
         // the screen. Silence for long enough is a reason to get out of the way.
@@ -1144,42 +1133,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         view.setLid(smoothLid)
     }
 
-    // MARK: demo
-
-    /// A Mac with no lid sensor, or no lid at all, can never show what this app
-    /// does: the switch is live, the sliders move, and nothing ever happens.
-    /// App Review runs on exactly that hardware. The demo drives the angle
-    /// through one close and open so the effect can be seen without a hinge.
-    private var demoStart: Date?
-    private static let demoSeconds = 9.0
-
-    @objc private func runDemo() {
-        // No built-in panel: a Mac mini, a VM, or a lid that is shut. A demo is
-        // not pretending the panel is turning, so any screen will do for it.
-        if nsScreen == nil, let any = NSScreen.main {
-            setUp(on: any)
-        }
-        guard nsScreen != nil else { return }
-        suppression = []
-        demoStart = Date()
-    }
-
-    /// Down to nearly shut, a hold, then back open. Eased, because the point is
-    /// to look like a lid rather than like a slider being dragged.
-    private func demoAngle(at elapsed: Double) -> Double {
-        let open = min(130, threshold + 20)
-        let shut = Self.floorDegrees + 8
-        let t = elapsed / Self.demoSeconds
-        let phase: Double
-        switch t {
-        case ..<0.35: phase = t / 0.35
-        case ..<0.65: phase = 1
-        default: phase = (1 - t) / 0.35
-        }
-        let eased = (1 - cos(min(1, max(0, phase)) * .pi)) / 2
-        return open + (shut - open) * eased
-    }
-
     // MARK: engage / disengage
 
     /// The window waits for the first captured frame. Ordering it front here
@@ -1189,11 +1142,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func engage() {
         guard !engaged else { return }
         // nsScreen outlives the screen it names: when the built-in panel goes
-        // away the app stands down but keeps the reference, and a demo may have
-        // borrowed an external one outright. Either way the illusion belongs to
-        // the built-in panel, so check the screen rather than trusting the
-        // suppression state to have caught every route back here.
-        guard demoStart != nil || nsScreen.map(Self.isBuiltIn) == true else { return }
+        // away the app stands down but keeps the reference, and several paths
+        // clear the suppression independently, so check the screen itself rather
+        // than trusting the state to have caught every route back here.
+        guard nsScreen.map(Self.isBuiltIn) == true else { return }
         engaged = true
         transition += 1
         smoothLid = rawLid // start exactly where the lid is, not where it was
@@ -1522,12 +1474,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         glassItem.view = glassRow
         menu.addItem(glassItem)
 
-        menu.addItem(.separator())
-        let demo = NSMenuItem(title: demoStart == nil ? "Run Demo" : "Demo running...",
-                              action: #selector(runDemo), keyEquivalent: "")
-        demo.target = self
-        demo.isEnabled = demoStart == nil
-        menu.addItem(demo)
 
         if let captureFailure {
             menu.addItem(.separator())
