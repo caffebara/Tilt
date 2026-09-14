@@ -95,7 +95,6 @@ final class StageView: NSView {
     private let blurred = CALayer()
     private let blurMask = CAGradientLayer()
     private let dim = CAGradientLayer()
-    private let gloss = CAGradientLayer()
     private let hint = CATextLayer()
     private var heldFrame: CVPixelBuffer?
     private var hasFrame = false
@@ -221,26 +220,6 @@ final class StageView: NSView {
         dim.endPoint = CGPoint(x: 0.5, y: 1)
         dim.opacity = 0
 
-        // The only angle-driven change to the face was "the far end gets darker",
-        // which is one half of what a panel turning away actually does. The other
-        // half is light: a sheen sweeping across the glass, and the contrast
-        // collapse of an LCD seen off axis, blacks lifting as whites fall. White
-        // through the same source-atop route `dim` already proved is the cheap
-        // way to both - it lands on the windows and leaves the gaps alone, and
-        // against `dim` underneath it the pair reads as contrast going rather
-        // than as brightness going.
-        //
-        // ponytail: the band sweeps down the face, which assumes the room light
-        // is above and behind. Flip the sign on the travel in applyDepthCues to
-        // try the other way; only a lid and a real ceiling can settle it.
-        gloss.compositingFilter = CIFilter(name: "CISourceAtopCompositing")
-        gloss.colors = [NSColor.white.withAlphaComponent(0.30).cgColor,
-                        NSColor.white.cgColor,
-                        NSColor.white.withAlphaComponent(0.30).cgColor]
-        gloss.startPoint = CGPoint(x: 0.5, y: 0)
-        gloss.endPoint = CGPoint(x: 0.5, y: 1)
-        gloss.opacity = 0
-
         // Rounded like a panel rather than a bitmap - but only once folded. At
         // rest the radius is zero, because anything else would shave the corners
         // off the real desktop the moment the overlay engages.
@@ -249,7 +228,6 @@ final class StageView: NSView {
         screen.addSublayer(sharp)
         screen.addSublayer(blurred)
         screen.addSublayer(dim)
-        screen.addSublayer(gloss)
         stage.addSublayer(screen)
 
         hint.fontSize = 13
@@ -295,7 +273,6 @@ final class StageView: NSView {
         blurred.frame = face
         blurMask.frame = face
         dim.frame = face
-        gloss.frame = face
         hint.frame = CGRect(x: bounds.midX - 160, y: 48, width: 320, height: 20)
         applyGeometry()
         CATransaction.commit()
@@ -453,7 +430,6 @@ final class StageView: NSView {
         guard glass > 0 else {
             blurred.opacity = 0
             dim.opacity = 0
-            gloss.opacity = 0
             setFalloff(from: 1) // sharp everywhere
             return
         }
@@ -488,18 +464,6 @@ final class StageView: NSView {
         // Fixed at 0.45 the falloff covered the top half from the first degree,
         // which announced the effect before the fold was worth announcing.
         setFalloff(from: 0.78 - 0.33 * t)
-
-        // Crawls down the face as the lid comes over, starting short of the top
-        // rather than on it: the last fifth is where `dim` is heaviest, and a
-        // sheen sitting there would spend the fold arguing with the one cue that
-        // says the far end is going away. The stops stay sorted because the band
-        // only ever travels 0.80 to 0.40 and the clamps bite at the ends, where
-        // the outer stop has already left the layer.
-        let band = 0.80 - 0.40 * t
-        gloss.locations = [NSNumber(value: max(0, band - 0.35)),
-                           NSNumber(value: band),
-                           NSNumber(value: min(1, band + 0.35))]
-        gloss.opacity = Float(0.22 * t * glass)
 
         // No corner radius: there is no panel any more, only the windows, and each
         // already carries its own rounding.
