@@ -1609,12 +1609,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         panel.contentView?.addSubview(text)
         panel.contentView?.addSubview(button)
         panel.center()
+        // Below the system's own dialog rather than on top of it. macOS puts its
+        // prompt a little above centre, and this one is 220 tall, so dropping it
+        // clears the overlap without leaving the screen on any usual size.
+        var placed = panel.frame
+        placed.origin.y -= placed.height + 40
+        if let visible = NSScreen.main?.visibleFrame, placed.minY < visible.minY {
+            placed.origin.y = visible.minY + 20
+        }
+        panel.setFrame(placed, display: false)
         // Floating, because macOS may refuse an app's request to come forward
         // and this window is the only route left to the setting.
         panel.level = .floating
         permissionPanel = panel
-        NSApp.activate(ignoringOtherApps: true)
-        panel.makeKeyAndOrderFront(nil)
+
+        // After the system prompt, not with it. Both windows are about the one
+        // permission, and the system's is the one that actually grants it, so it
+        // gets the screen to itself first. Shown together they landed on top of
+        // each other and the window explaining why was the one underneath.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            guard let panel = self?.permissionPanel else { return }
+            NSApp.activate(ignoringOtherApps: true)
+            panel.makeKeyAndOrderFront(nil)
+        }
         return false
     }
 
