@@ -90,9 +90,12 @@ final class StageView: NSView {
     private let backdropTint = CAGradientLayer()
     private let stage = CALayer()
     private let screen = CALayer()
+    private let sharp = CALayer()
+    private let sharpMask = CAGradientLayer()
     private let blurred = CALayer()
     private let blurMask = CAGradientLayer()
     private let dim = CAGradientLayer()
+    private let gloss = CAGradientLayer()
     private let hint = CATextLayer()
     private var heldFrame: CVPixelBuffer?
     private var hasFrame = false
@@ -121,8 +124,14 @@ final class StageView: NSView {
 
     /// How hard the glass treatment is applied, from the menu bar. Everything
     /// below is written at full strength and scaled by this.
+    /// Where the room's vignette sits at rest, and how far out it falls off.
+    /// applyDepthCues slides both down together as the fold deepens.
+    private static let tintCentre = CGPoint(x: 0.5, y: 0.55)
+    private static let tintEdge = CGPoint(x: 1.15, y: 1.2)
+
     var glass = 0.65
     private var appliedBlurRadius = -1.0
+    private var appliedFalloff: [NSNumber] = []
     private var appliedLid: Double?
 
     override init(frame frameRect: NSRect) {
@@ -151,13 +160,16 @@ final class StageView: NSView {
         backdropTint.colors = [NSColor.black.withAlphaComponent(0.22).cgColor,
                                NSColor.black.withAlphaComponent(0.72).cgColor]
         backdropTint.locations = [0.0, 1.0]
-        backdropTint.startPoint = CGPoint(x: 0.5, y: 0.55)
-        backdropTint.endPoint = CGPoint(x: 1.15, y: 1.2)
+        backdropTint.startPoint = Self.tintCentre  // slides down with the fold
+        backdropTint.endPoint = Self.tintEdge
         backdropTint.opacity = 0
         root.addSublayer(backdropTint)
 
         screen.anchorPoint = CGPoint(x: 0.5, y: 0) // reset each layout, see below
-        screen.contentsGravity = .resizeAspect
+        // Perspective leaves the top and bottom edges horizontal and turns the
+        // sides into slanted lines, which the clip below rasterises as a
+        // staircase wherever a window reaches the display edge.
+        screen.allowsEdgeAntialiasing = true
 
         // Depth of field and grazing-angle falloff, both strongest along the far
         // edge. A blurred copy of the same surface, revealed by a gradient mask,
@@ -171,28 +183,73 @@ final class StageView: NSView {
         blur.name = "blur"
         blurred.filters = [clamp, blur]
         blurred.masksToBounds = true
+        // The far edge compresses to a fraction of its texture height, and
+        // bilinear minification without mipmaps makes window text crawl there.
+        blurred.minificationFilter = .trilinear
         blurred.opacity = 0
 
+        // The sharp original used to live on `screen` itself, under the blurred
+        // copy and never hidden by it. A blurred window edge has soft alpha, so
+        // the hard edge underneath showed straight through: every window near the
+        // far end wore a crisp core in a soft halo, which is a glow rather than a
+        // depth of field. Giving it its own layer under the exact inverse mask
+        // makes the two alphas sum to 1 on every row, so one fades out precisely
+        // as the other fades in.
+        //
+        // The break between them is a `locations` stop rather than `startPoint`,
+        // because applyDepthCues moves it with the fold and only `locations` has
+        // a degenerate case that still means something: [1, 1] is wholly the
+        // first colour, which is how glass 0 turns the falloff off entirely.
+        sharp.contentsGravity = .resizeAspect
+        sharp.minificationFilter = .trilinear
+        sharp.allowsEdgeAntialiasing = true
+        sharpMask.colors = [NSColor.black.cgColor, NSColor.clear.cgColor]
         blurMask.colors = [NSColor.clear.cgColor, NSColor.black.cgColor]
-        blurMask.startPoint = CGPoint(x: 0.5, y: 0.45) // sharp up to here
-        blurMask.endPoint = CGPoint(x: 0.5, y: 1)
+        for mask in [sharpMask, blurMask] {
+            mask.startPoint = CGPoint(x: 0.5, y: 0)
+            mask.endPoint = CGPoint(x: 0.5, y: 1)
+        }
+        sharp.mask = sharpMask
         blurred.mask = blurMask
 
         // Only where there is a window. Without this the gradient paints the empty
         // space between windows too, putting a dark sheet over the wallpaper.
         dim.compositingFilter = CIFilter(name: "CISourceAtopCompositing")
-        dim.colors = [NSColor.clear.cgColor, NSColor.black.cgColor]
+        dim.colors = [NSColor.black.withAlphaComponent(0.45).cgColor,
+                      NSColor.black.cgColor]
         dim.startPoint = CGPoint(x: 0.5, y: 0)
         dim.endPoint = CGPoint(x: 0.5, y: 1)
         dim.opacity = 0
+
+        // The only angle-driven change to the face was "the far end gets darker",
+        // which is one half of what a panel turning away actually does. The other
+        // half is light: a sheen sweeping across the glass, and the contrast
+        // collapse of an LCD seen off axis, blacks lifting as whites fall. White
+        // through the same source-atop route `dim` already proved is the cheap
+        // way to both - it lands on the windows and leaves the gaps alone, and
+        // against `dim` underneath it the pair reads as contrast going rather
+        // than as brightness going.
+        //
+        // ponytail: the band sweeps down the face, which assumes the room light
+        // is above and behind. Flip the sign on the travel in applyDepthCues to
+        // try the other way; only a lid and a real ceiling can settle it.
+        gloss.compositingFilter = CIFilter(name: "CISourceAtopCompositing")
+        gloss.colors = [NSColor.white.withAlphaComponent(0.30).cgColor,
+                        NSColor.white.cgColor,
+                        NSColor.white.withAlphaComponent(0.30).cgColor]
+        gloss.startPoint = CGPoint(x: 0.5, y: 0)
+        gloss.endPoint = CGPoint(x: 0.5, y: 1)
+        gloss.opacity = 0
 
         // Rounded like a panel rather than a bitmap - but only once folded. At
         // rest the radius is zero, because anything else would shave the corners
         // off the real desktop the moment the overlay engages.
         screen.masksToBounds = true
 
+        screen.addSublayer(sharp)
         screen.addSublayer(blurred)
         screen.addSublayer(dim)
+        screen.addSublayer(gloss)
         stage.addSublayer(screen)
 
         hint.fontSize = 13
@@ -233,9 +290,12 @@ final class StageView: NSView {
         screen.anchorPoint = CGPoint(x: 0.5, y: -hinge / height)
         screen.position = CGPoint(x: bounds.midX, y: -hinge)
         let face = CGRect(x: 0, y: 0, width: width, height: height)
+        sharp.frame = face
+        sharpMask.frame = face
         blurred.frame = face
         blurMask.frame = face
         dim.frame = face
+        gloss.frame = face
         hint.frame = CGRect(x: bounds.midX - 160, y: 48, width: 320, height: 20)
         applyGeometry()
         CATransaction.commit()
@@ -257,7 +317,7 @@ final class StageView: NSView {
         let surface = CVPixelBufferGetIOSurface(pixelBuffer)?.takeUnretainedValue()
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        screen.contents = surface
+        sharp.contents = surface
         blurred.contents = surface
         CATransaction.commit()
 
@@ -299,7 +359,7 @@ final class StageView: NSView {
         appliedLid = nil
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        screen.contents = nil
+        sharp.contents = nil
         blurred.contents = nil // a full-resolution surface, held for nothing
         CATransaction.commit()
     }
@@ -376,35 +436,84 @@ final class StageView: NSView {
         backdrop.opacity = 1
         backdropTint.opacity = Float(min(1, max(0, lean / 18)))
 
+        // The panel is not the only thing turning away from the light. The room
+        // behind it had a vignette pinned to one spot, so the surround darkened
+        // evenly and the fold had no direction in it at all. Sliding the bright
+        // centre down as the lid comes over puts the far half of the room in
+        // shadow and leaves the near half lit, which is the same cue `dim` puts
+        // on the panel and the reason the two now read as one space.
+        //
+        // Centre and edge move together, so the vignette travels rather than
+        // stretches: the falloff stays as soft as it was tuned to be.
+        let drop = 0.30 * CGFloat(min(1, max(0, lean / 60)))
+        backdropTint.startPoint = CGPoint(x: Self.tintCentre.x,
+                                          y: Self.tintCentre.y - drop)
+        backdropTint.endPoint = CGPoint(x: Self.tintEdge.x, y: Self.tintEdge.y - drop)
+
         guard glass > 0 else {
             blurred.opacity = 0
             dim.opacity = 0
-            screen.opacity = 1
+            gloss.opacity = 0
+            setFalloff(from: 1) // sharp everywhere
             return
         }
         let full = 60.0
         let t = min(1, max(0, lean / full))
 
-        // Opacity and radius used to be scaled by the same two factors, so at
-        // Medium the far edge was a third of a 14px blur over a sharp original:
-        // arithmetically present, visually absent. The mask already confines the
-        // blurred copy to the far end, so it may as well be fully opaque there,
-        // and the strength belongs entirely to the radius.
-        blurred.opacity = Float(min(1, t * 3))
+        // Flat 1, and the mask alone decides where it shows. Anything less
+        // breaks the sum with `sharp`: at half opacity the two masked copies
+        // together cover the far band only half way, and the wallpaper behind
+        // comes through the gap. The strength belongs entirely to the radius,
+        // which is where it was already going.
+        blurred.opacity = 1
         let radius = 40 * t * glass
         if abs(radius - appliedBlurRadius) > 0.4 {
             appliedBlurRadius = radius
             blurred.setValue(radius, forKeyPath: "filters.blur.inputRadius")
         }
-        dim.opacity = Float(min(0.45, t) * glass)
+        // Closing dims the whole panel, not just the end tilting away, so the
+        // near edge starts part way down rather than at nothing.
+        //
+        // This used to be `screen.opacity` as well, on a comment saying the stage
+        // behind it was black. It has not been black since the wallpaper became a
+        // live backdrop at full opacity, and the capture is windows over `.clear`,
+        // so dropping the group's opacity did not dim the glass - it made every
+        // window translucent and printed the desktop picture through it. The
+        // darkening belongs here, where source-atop keeps it on the windows and
+        // off the gaps between them.
+        dim.opacity = Float(min(0.8, t) * glass)
 
-        // Closing dims the whole panel, not just the end that is tilting away -
-        // the stage behind is black, so leaning on the layer's own opacity costs
-        // nothing and reverses exactly as the lid opens again.
-        screen.opacity = Float(1 - 0.55 * t * glass)
+        // Depth across the panel is height * sin(lean), so a small fold leaves the
+        // whole face at nearly one distance and only the last of it should soften.
+        // Fixed at 0.45 the falloff covered the top half from the first degree,
+        // which announced the effect before the fold was worth announcing.
+        setFalloff(from: 0.78 - 0.33 * t)
+
+        // Crawls down the face as the lid comes over, starting short of the top
+        // rather than on it: the last fifth is where `dim` is heaviest, and a
+        // sheen sitting there would spend the fold arguing with the one cue that
+        // says the far end is going away. The stops stay sorted because the band
+        // only ever travels 0.80 to 0.40 and the clamps bite at the ends, where
+        // the outer stop has already left the layer.
+        let band = 0.80 - 0.40 * t
+        gloss.locations = [NSNumber(value: max(0, band - 0.35)),
+                           NSNumber(value: band),
+                           NSNumber(value: min(1, band + 0.35))]
+        gloss.opacity = Float(0.22 * t * glass)
 
         // No corner radius: there is no panel any more, only the windows, and each
         // already carries its own rounding.
+    }
+
+    /// Where the sharp copy gives way to the blurred one, in the layer's own
+    /// space. One stop drives both masks because they are exact complements:
+    /// whatever `sharp` loses across the ramp, `blurred` gains.
+    private func setFalloff(from breakPoint: Double) {
+        let stops = [NSNumber(value: min(1, max(0, breakPoint))), NSNumber(value: 1.0)]
+        guard stops != appliedFalloff else { return }
+        appliedFalloff = stops
+        sharpMask.locations = stops
+        blurMask.locations = stops
     }
 
 
@@ -1441,6 +1550,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.image = Self.menuBarIcon()
         statusItem.button?.imagePosition = .imageLeading
+        // The readout changes every time the lid moves, and proportional figures
+        // change its width with it - measured at 4.19pt across the three-digit
+        // angles alone, which shoves every menu bar item to its left. Same reason
+        // the slider readout below is already monospaced.
+        let size = statusItem.button?.font?.pointSize ?? NSFont.systemFontSize
+        statusItem.button?.font = .monospacedDigitSystemFont(ofSize: size, weight: .regular)
         rebuildMenu()
     }
 
