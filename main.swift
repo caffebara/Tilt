@@ -952,11 +952,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let hintShownKey = "dismissHintShown"
     private static let glassKey = "glassIntensity"
     private static let distanceKey = "viewingDistanceCm"
+    private static let showsAngleKey = "showsAngleInMenuBar"
 
     private var enabled: Bool {
         didSet {
             UserDefaults.standard.set(enabled, forKey: Self.enabledKey)
             if !enabled { disengage() }
+        }
+    }
+
+    /// On by default, and worth keeping that way: the number is the only sign
+    /// from outside that the sensor is being read at all. With it off a working
+    /// app and a dead one look the same in the menu bar.
+    private var showsAngle: Bool {
+        didSet {
+            UserDefaults.standard.set(showsAngle, forKey: Self.showsAngleKey)
+            shownDegrees = Int.min          // force the next sample to redraw
+            statusItem.button?.title = ""
         }
     }
 
@@ -988,6 +1000,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         glass = UserDefaults.standard.object(forKey: Self.glassKey) as? Double ?? 0.65
         distanceCm = UserDefaults.standard.object(forKey: Self.distanceKey) as? Double ?? 55
         enabled = UserDefaults.standard.object(forKey: Self.enabledKey) as? Bool ?? true
+        showsAngle = UserDefaults.standard.object(forKey: Self.showsAngleKey) as? Bool ?? true
         super.init()
     }
 
@@ -1117,7 +1130,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         lastGoodSample = Date()
         rawLid = angle
         let degrees = Int(angle.rounded())
-        if degrees != shownDegrees {
+        if degrees != shownDegrees, showsAngle {
             shownDegrees = degrees
             statusItem.button?.title = " \(degrees)°"
         }
@@ -1501,6 +1514,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         glassItem.view = glassRow
         menu.addItem(glassItem)
 
+        let angleRow = NSMenuItem()
+        angleRow.view = SwitchRow(title: "Show angle in menu bar", isOn: showsAngle,
+                                  target: self, action: #selector(showsAngleSwitched(_:)))
+        menu.addItem(angleRow)
+
 
         if let captureFailure {
             menu.addItem(.separator())
@@ -1552,6 +1570,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func enabledSwitched(_ sender: NSSwitch) {
         enabled = sender.state == .on
+    }
+
+    @objc private func showsAngleSwitched(_ sender: NSSwitch) {
+        showsAngle = sender.state == .on
     }
 
     @objc private func thresholdSlid(_ sender: NSSlider) {
