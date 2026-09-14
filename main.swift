@@ -756,13 +756,13 @@ final class SliderRow: NSView {
 
         let label = NSTextField(labelWithString: title)
         label.font = .menuFont(ofSize: 13)
-        label.frame = NSRect(x: 20, y: 34, width: 180, height: 17)
+        label.frame = NSRect(x: 16, y: 34, width: 180, height: 17)
         addSubview(label)
 
         readout.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
         readout.textColor = .secondaryLabelColor
         readout.alignment = .right
-        readout.frame = NSRect(x: 190, y: 35, width: 92, height: 14) // +2 for its alignment inset
+        readout.frame = NSRect(x: 194, y: 35, width: 92, height: 14) // +2 for its alignment inset
         addSubview(readout)
 
         slider.minValue = range.lowerBound
@@ -775,7 +775,7 @@ final class SliderRow: NSView {
         slider.controlSize = .small
         slider.target = target
         slider.action = action
-        slider.frame = NSRect(x: 20, y: 6, width: 260, height: 22)
+        slider.frame = NSRect(x: 16, y: 6, width: 268, height: 22)
         addSubview(slider)
 
         refresh()
@@ -801,7 +801,7 @@ final class SegmentRow: NSView {
 
         let label = NSTextField(labelWithString: title)
         label.font = .menuFont(ofSize: 13)
-        label.frame = NSRect(x: 20, y: 34, width: 260, height: 17)
+        label.frame = NSRect(x: 16, y: 34, width: 268, height: 17)
         addSubview(label)
 
         segments.segmentCount = labels.count
@@ -818,7 +818,7 @@ final class SegmentRow: NSView {
             .min { abs($0.element - current) < abs($1.element - current) }?.offset ?? 0
         segments.target = target
         segments.action = action
-        segments.frame = NSRect(x: 20, y: 6, width: 260, height: 24)
+        segments.frame = NSRect(x: 16, y: 6, width: 268, height: 24)
         addSubview(segments)
     }
 
@@ -827,6 +827,30 @@ final class SegmentRow: NSView {
 
 /// A labelled switch, sized to sit inside an NSMenuItem. The on/off state of the
 /// whole app is a toggle, and a checkmark beside a word is a weaker way to say so.
+/// One paragraph, wrapped, at the width the other rows use. Three disabled
+/// items in a row read as a wall of text in a menu; a menu item is a line, and
+/// prose that needs more than one belongs in one view rather than stacked.
+final class NoteRow: NSView {
+    init(_ text: String) {
+        super.init(frame: NSRect(x: 0, y: 0, width: 300, height: 0))
+        let label = NSTextField(wrappingLabelWithString: text)
+        label.font = .menuFont(ofSize: 12)
+        label.textColor = .secondaryLabelColor
+        label.isSelectable = false
+        // The width has to be settled before the height is asked for. sizeToFit
+        // on a wrapping label widens it to one line instead of wrapping, which
+        // is the whole point of the row.
+        label.preferredMaxLayoutWidth = 268
+        let height = label.sizeThatFits(
+            NSSize(width: 268, height: CGFloat.greatestFiniteMagnitude)).height
+        label.frame = NSRect(x: 16, y: 8, width: 268, height: height)
+        addSubview(label)
+        setFrameSize(NSSize(width: 300, height: height + 16))
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+}
+
 final class SwitchRow: NSView {
     let toggle = NSSwitch()
 
@@ -835,7 +859,7 @@ final class SwitchRow: NSView {
 
         let label = NSTextField(labelWithString: title)
         label.font = .menuFont(ofSize: 13)
-        label.frame = NSRect(x: 20, y: 9, width: 160, height: 17)
+        label.frame = NSRect(x: 16, y: 9, width: 160, height: 17)
         addSubview(label)
 
         toggle.state = isOn ? .on : .off
@@ -845,7 +869,7 @@ final class SwitchRow: NSView {
         toggle.target = target
         toggle.action = action
         toggle.sizeToFit()
-        toggle.setFrameOrigin(NSPoint(x: 280 - toggle.frame.width,
+        toggle.setFrameOrigin(NSPoint(x: 284 - toggle.frame.width,
                                       y: (34 - toggle.frame.height) / 2))
         addSubview(toggle)
     }
@@ -1424,6 +1448,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func populate(_ menu: NSMenu) {
         menu.removeAllItems()
 
+        // Nothing to set up with until the permission is there: the switch, the
+        // sliders and the glass all drive an overlay that cannot draw. Show what
+        // finishes setup and nothing else.
+        if needsScreenRecording {
+            let note = NSMenuItem()
+            note.view = NoteRow(
+                "Tilt draws your desktop, so macOS counts that as screen "
+                + "recording. Switch it on, then let macOS quit and reopen Tilt.")
+            menu.addItem(note)
+            let open = NSMenuItem(title: "Open Screen Recording settings…",
+                                  action: #selector(openScreenRecordingSettings),
+                                  keyEquivalent: "")
+            open.target = self
+            menu.addItem(open)
+            menu.addItem(.separator())
+            addQuit(to: menu)
+            return
+        }
+
         let onOff = NSMenuItem()
         onOff.view = SwitchRow(title: "Enabled", isOn: enabled,
                                target: self, action: #selector(enabledSwitched(_:)))
@@ -1440,22 +1483,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                   action: nil, keyEquivalent: "")
             none.isEnabled = false
             menu.addItem(none)
-        }
-        if needsScreenRecording {
-            // Two disabled lines and one that acts, in the order a person needs
-            // them: what is wrong, why it is asked for, and where to answer.
-            for line in ["Needs screen recording access",
-                         "Tilt draws your desktop, so macOS counts that as recording",
-                         "Switch it on, then let macOS quit and reopen Tilt"] {
-                let note = NSMenuItem(title: line, action: nil, keyEquivalent: "")
-                note.isEnabled = false
-                menu.addItem(note)
-            }
-            let open = NSMenuItem(title: "Open Screen Recording settings…",
-                                  action: #selector(openScreenRecordingSettings),
-                                  keyEquivalent: "")
-            open.target = self
-            menu.addItem(open)
         }
 
         menu.addItem(.separator())
@@ -1489,10 +1516,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         menu.addItem(.separator())
-        let quit = NSMenuItem(title: "Quit Tilt", action: #selector(NSApplication.terminate(_:)),
+        addQuit(to: menu)
+    }
+
+    private func addQuit(to menu: NSMenu) {
+        // Our own selector rather than NSApplication.terminate on NSApp. Pointed
+        // at the application object the row drew a symbol of its own in the
+        // state column, which is where a checkmark goes, so the title sat a
+        // glyph's width right of every other line in the menu.
+        let quit = NSMenuItem(title: "Quit Tilt", action: #selector(quitTilt),
                               keyEquivalent: "q")
-        quit.target = NSApp
+        quit.target = self
         menu.addItem(quit)
+    }
+
+    @objc private func quitTilt() {
+        NSApp.terminate(nil)
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
