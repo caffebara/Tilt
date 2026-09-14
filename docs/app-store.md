@@ -35,13 +35,22 @@ Worth writing in the review notes, since the review machine may have no lid at a
 > Tilt reads the MacBook lid angle from the built-in HID sensor and renders the desktop in
 > perspective as the lid closes. `com.apple.security.device.usb` is what grants IOKit access to
 > that sensor and is used for nothing else, no external or removable device. Screen recording is
-> what draws the desktop as the tilting plane. On a Mac with no lid angle sensor or no built-in
-> display, choose Run Demo from the menu bar item to see the effect.
+> what draws the desktop as the tilting plane. The first time the overlay appears macOS also asks
+> for input monitoring: the overlay covers the screen at the shielding window level and takes key
+> focus so that escape dismisses it, and the system treats a window in that position as able to
+> see keystrokes meant for other apps. Tilt installs a local monitor that passes every key through
+> untouched except escape, and denying the permission costs only that shortcut, since a click
+> dismisses the overlay too. On a Mac with no lid angle sensor or no built-in display, choose Run
+> Demo from the menu bar item to see the effect.
 
 ## Known risks
 
-No lid angle app is on the Mac App Store today, so there is no precedent either way. Two things
-a reviewer may ask about: a USB entitlement on an app that touches no removable device, and a
-sensor whose HID usage Apple has not documented, although it is read through public IOKit calls
-rather than a private API. The name is worth checking early, since several apps beginning with
-Tilt are already there.
+No lid angle app is on the Mac App Store today, so there is no precedent either way. Three things
+a reviewer may ask about: a USB entitlement on an app that touches no removable device, a sensor
+whose HID usage Apple has not documented, although it is read through public IOKit calls rather
+than a private API, and a keystroke prompt on an app that does not type. That last one arrives
+with no explanation of its own, unlike screen recording, which this app introduces with a panel
+of its own before macOS asks. Measured on 2026-09-14: launching does not raise it, the first
+engagement does, so a reviewer who never gets the overlay on screen will never see it.
+
+The name is worth checking early, since several apps beginning with Tilt are already there.
