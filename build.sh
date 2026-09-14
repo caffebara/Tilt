@@ -65,6 +65,10 @@ cp MenuIcon.svg "$APP/Contents/Resources/MenuIcon.svg"
 cp THIRD-PARTY-NOTICES.md "$APP/Contents/Resources/THIRD-PARTY-NOTICES.md"
 
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+# The privacy manifest. Shared with the Xcode project for the reason in 003: a
+# bundle input that only one build path copies is a bundle the local loop cannot
+# reproduce, and this is the one the store reads.
+cp Resources/PrivacyInfo.xcprivacy "$APP/Contents/Resources/PrivacyInfo.xcprivacy"
 
 swiftc -O -target arm64-apple-macos14.0 $EXTRA main.swift -o "$APP/Contents/MacOS/Tilt"
 if [ -n "$ENTITLEMENTS" ]; then

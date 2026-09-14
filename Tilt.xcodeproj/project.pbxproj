@@ -11,6 +11,7 @@
 		D14C1F831E423F4444C216AD /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0BA8C1D8BCECC41AEB7A20DB /* AppIcon.icns */; };
 		F9E4E7ED44A96C3EB6186924 /* MenuIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 7E08C1D359D01D3743539C69 /* MenuIcon.svg */; };
 		BF4FD059623509D0E086801B /* THIRD-PARTY-NOTICES.md in Resources */ = {isa = PBXBuildFile; fileRef = D0287F73CB7F54140884B6B9 /* THIRD-PARTY-NOTICES.md */; };
+		A72E5C1B93D04F6A7B18E3D5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C3A1D07E45B2F81069E4A2C7 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +22,7 @@
 		7E08C1D359D01D3743539C69 /* MenuIcon.svg */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = MenuIcon.svg; sourceTree = "<group>"; };
 		847318E2B36600100B752B21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		74E5A4FEAD28BA45D9EEE9D0 /* Tilt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tilt.entitlements; sourceTree = "<group>"; };
+		C3A1D07E45B2F81069E4A2C7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D0287F73CB7F54140884B6B9 /* THIRD-PARTY-NOTICES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "THIRD-PARTY-NOTICES.md"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -53,6 +55,7 @@
 			children = (
 				847318E2B36600100B752B21 /* Info.plist */,
 				74E5A4FEAD28BA45D9EEE9D0 /* Tilt.entitlements */,
+				C3A1D07E45B2F81069E4A2C7 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -125,6 +128,7 @@
 				D14C1F831E423F4444C216AD /* AppIcon.icns in Resources */,
 				F9E4E7ED44A96C3EB6186924 /* MenuIcon.svg in Resources */,
 				BF4FD059623509D0E086801B /* THIRD-PARTY-NOTICES.md in Resources */,
+				A72E5C1B93D04F6A7B18E3D5 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
