@@ -66,7 +66,15 @@ holds, so there is no point filling in a listing under a name that turns out to 
    reading boot time, and nothing else in the file touches file timestamps, disk space or the
    active keyboard. Check it against Apple's current required-reason list when the account exists,
    since that list is versioned and is not readable from here.
-3. **Verify the rendering change on hardware.** `074a2cb..5689ec1` has not been seen on a real lid.
+3. ~~Verify the rendering change on hardware~~ **Done, 2026-09-15.** Seen on a real lid, and it
+   cost a commit: the surround darkened as the lid came over while the windows floating on it went
+   pale. `gloss` was white through source-atop, which lifts blacks more than it drops whites, so
+   `d65ed53` removes it. An LCD seen off axis converges on mid grey rather than on white, so the
+   colour was wrong rather than merely strong.
+
+   Nothing offscreen would have caught it. `CALayer.render(in:)` ignores `compositingFilter`,
+   measured at an alpha of 96 where source-atop would have left 0, and source-atop is what the
+   whole treatment rests on. The screen is the only instrument for this one.
 4. ~~`ITSAppUsesNonExemptEncryption`~~ **Done.** `false`, in `Resources/Info.plist`, which removes
    the export compliance question App Store Connect otherwise asks on every single upload. The key
    is real: Xcode's `CoreBuildSystem.xcspec` carries it as
