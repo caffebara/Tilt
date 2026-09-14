@@ -1590,9 +1590,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         let text = NSTextField(wrappingLabelWithString:
             "Tilt draws your own desktop, so macOS treats it as screen recording.\n\n"
-            + "Switch Tilt on under Screen & System Audio Recording, then quit Tilt "
-            + "from the menu bar and open it again. The permission only reaches a "
-            + "fresh launch.")
+            + "Switch Tilt on under Screen & System Audio Recording. macOS offers "
+            + "to quit and reopen Tilt once you do; take it. The permission "
+            + "reaches a launch rather than a process, and an app already running "
+            + "is never told that it arrived.")
         text.font = .systemFont(ofSize: 13)
         text.frame = NSRect(x: 24, y: 66, width: 392, height: 130)
 
