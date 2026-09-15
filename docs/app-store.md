@@ -121,6 +121,55 @@ this machine: all 15 installed Mac App Store apps carry both `Assets.car` and `C
 and none ships a bare `CFBundleIconFile`. This bundle ships a bare `CFBundleIconFile`. No macOS
 validation rule was found either way, so the first upload is what decides it.
 
+## Every clause this path pulls in
+
+App Store Review Guidelines, revision **June 8, 2026**, read in full on 2026-09-15 rather than
+recalled. The channel is the Mac App Store, which is what pulls in 2.4.5; on iOS that block does not
+apply and others do. A verdict here is only as good as the revision beside it, so check the revision
+line before trusting the table.
+
+| clause | verdict | what decides it |
+| --- | --- | --- |
+| 2.1 App Completeness | **not met** | `docs/privacy-policy.md` ends in a `<contact address>` placeholder and has no URL. 2.1(a) wants placeholders scrubbed and URLs functional |
+| 2.3.1 hidden features | **question** | `main.swift` ships a `--check` mode in the submitted binary. Undocumented to the user, which is what the clause names. Describe it in Notes for Review, or gate it |
+| 2.4.5(i) sandbox | met | `Resources/Tilt.entitlements` carries `com.apple.security.app-sandbox` |
+| 2.4.5(ii) Xcode packaging, self-contained | met | `Tilt.xcodeproj` is the submission path, per 003. The bundle is seven files, no helper, nothing in a shared location. `build.sh` is the local loop and is not a submission path |
+| 2.4.5(iii) launch at login | met | registration happens only inside the switch handler, and the default is not registered, so turning it on is the consent. **The clause did not apply before `8639f6a`**: adding the feature opened it |
+| 2.4.5(iv) no downloaded code | met | no networking API anywhere in `main.swift` |
+| 2.4.5(v) no root or setuid | met | neither |
+| 2.4.5(vi) no licence keys | met | none |
+| 2.4.5(vii) updates via the store | met | no updater, and no network to reach one |
+| 2.4.5(viii) current OS | met | `LSMinimumSystemVersion` 14.0, running on 26.1 |
+| 2.4.5(ix) one bundle for localisation | met | no `.lproj`, English only |
+| 2.5.1 public APIs | met | no `CGS`/`SLS` symbol, no `dlopen`, no `@_silgen_name`, no `NSClassFromString`. The sensor is public IOKit; what is undocumented is the HID usage value, not the API |
+| 2.5.14 recording | met by construction | see below, and it has to be said out loud |
+| 4.2 Minimum Functionality | judgement | a native app reading a hardware sensor, not a repackaged anything. The exposure is 005's accepted risk: on a reviewer's machine with no lid sensor it does nothing |
+| 5.1.1(i) privacy policy in two places | **not met** | the policy exists but has no URL, and nothing in the app links to one. The App Store Connect half is a form field; the in-app half needs a menu row |
+
+### 2.5.14, which is met by construction and reads as unmet
+
+The clause wants two things, and only the first has a system prompt behind it: explicit consent, and
+a clear visual or audible indication while recording. macOS asks for the screen recording permission
+on its own. Nothing makes an app show an indicator, so a reviewer checking this clause looks for a
+badge and does not find one.
+
+The answer here is structural. **Tilt's output is the capture.** There is no state in which it is
+recording and the user cannot see it, because what it records is drawn full screen in front of them
+for as long as it runs, and it stops the moment the overlay does. An indicator would be a smaller,
+later copy of the thing already filling the display. That argument belongs in the review notes,
+because it is invisible from the clause.
+
+### The two that are not met
+
+**5.1.1(i)** is the one to fix in code. The clause is unconditional, "All apps", and wants the link
+in App Store Connect **and** inside the app. `docs/privacy-policy.md` is written and every claim in
+it was checked against the source, but no URL serves it and no row in the menu points at one. For an
+app with no window the menu is the only surface there is, so this is one `NSMenuItem` beside the
+existing settings row, opening the hosted policy. It cannot be closed until the policy has a URL, so
+hosting comes first.
+
+**2.1(a)** closes with that same URL and with the contact address the policy still leaves blank.
+
 ## Known risks
 
 No lid angle app is on the Mac App Store today, so there is no precedent either way. Three things
