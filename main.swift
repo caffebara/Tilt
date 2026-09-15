@@ -782,25 +782,40 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
 /// side: smooth enough to hide a 1 degree step and it lags a fast close, quick
 /// enough to keep up and the steps show whenever the lid creeps. This moves its
 /// own cutoff with the measured speed, so it can do both.
-struct OneEuroFilter {
-    var minCutoff = 0.6 // Hz, how hard it smooths when nothing is moving
-    var beta = 0.05 // how fast the cutoff opens up as the lid speeds up
-    var derivativeCutoff = 1.0
+struct AngleTracker {
+    /// How hard each reading pulls the position. Higher tracks harder and puts
+    /// the staircase back on screen: measured across 10 to 120 deg/s, the worst
+    /// unevenness between consecutive frames goes 0.54 at 0.15 to 0.17 at 0.05.
+    ///
+    /// What it buys back is a reversal. Closing and immediately opening leaves
+    /// the output a degree behind for 10 frames at 0.15 and 27 at 0.05, both at
+    /// 90 deg/s, and the error itself is 1.25 either way because `lead` bounds
+    /// it. Slower is smoother and mushier, in that order.
+    var gain = 0.05
+    /// How hard each reading corrects the velocity estimate. This is the term
+    /// that fills the frames between readings, and the one that overshoots.
+    var velocityGain = 0.004
+    /// Degrees the output may run ahead of the last reading. One quantisation
+    /// step, because that is the furthest the sensor can be behind the truth.
+    var lead = 1.0
 
     private var value: Double?
     private var speed = 0.0
 
-    private func alpha(cutoff: Double, dt: Double) -> Double {
-        let tau = 1 / (2 * .pi * cutoff)
-        return 1 / (1 + tau / dt)
-    }
-
     mutating func callAsFunction(_ x: Double, dt: Double) -> Double {
         guard let previous = value else { value = x; return x }
-        speed += alpha(cutoff: derivativeCutoff, dt: dt) * ((x - previous) / dt - speed)
-        let filtered = previous + alpha(cutoff: minCutoff + beta * abs(speed), dt: dt) * (x - previous)
-        value = filtered
-        return filtered
+        // Carry the position forward at the speed the lid is actually moving,
+        // then correct both against what the sensor just said.
+        var predicted = previous + speed * dt
+        let residual = x - predicted
+        predicted += gain * residual
+        speed += velocityGain * residual / dt
+        // And never more than one step ahead of the reading. Prediction with
+        // nothing holding it back sails 5.87 degrees past a lid that stops dead
+        // at 120 deg/s; this bounds it at one and costs nothing while moving.
+        let held = min(x + lead, max(x - lead, predicted))
+        value = held
+        return held
     }
 
     mutating func reset(to x: Double?) {
@@ -971,7 +986,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var displayLink: CADisplayLink?
     private var rawLid: Double? // main thread only
     private var smoothLid: Double? // main thread only
-    private var filter = OneEuroFilter()
+    private var filter = AngleTracker()
     private var shownDegrees = Int.min
     private var lastGoodSample = Date()
     private var transition = 0
@@ -1832,28 +1847,39 @@ if CommandLine.arguments.contains("--check") {
     // change that fixes one by breaking the other looks fine in a screenshot.
     let dt = 1.0 / 120
     func sweep(from: Double, to: Double, seconds: Double)
-        -> (biggestStep: Double, lagAtEnd: Double) {
-        var filter = OneEuroFilter()
+        -> (biggestStep: Double, lagAtEnd: Double, overshoot: Double) {
+        var filter = AngleTracker()
         var biggest = 0.0
         var previous: Double?
         let frames = Int(seconds / dt)
         var truth = from
+        var out = from
         for i in 0...frames {
             truth = from + (to - from) * Double(i) / Double(frames)
             let quantised = truth.rounded() // what the sensor actually reports
-            let out = filter(quantised, dt: dt)
+            out = filter(quantised, dt: dt)
             if let previous { biggest = max(biggest, abs(out - previous)) }
             previous = out
         }
-        return (biggest, abs((previous ?? truth) - truth))
+        let lag = abs(out - truth)
+        // Then the lid stops dead, which is the failure a filter that predicts
+        // can have and one that only smooths cannot. Nothing measured it until
+        // the prediction went in, so a run that sails past the angle used to
+        // look exactly like a run that tracked it.
+        var overshoot = 0.0
+        for _ in 0...Int(1.0 / dt) {
+            out = filter(truth.rounded(), dt: dt)
+            overshoot = max(overshoot, abs(out - truth))
+        }
+        return (biggest, lag, overshoot)
     }
 
     let slow = sweep(from: 110, to: 100, seconds: 2) // 5 deg/s, the stepping case
     let fast = sweep(from: 110, to: 50, seconds: 0.5) // 120 deg/s, the lag case
-    print(String(format: "slow sweep: biggest frame step %.3f deg, lag %.2f deg",
-                 slow.biggestStep, slow.lagAtEnd))
-    print(String(format: "fast sweep: biggest frame step %.3f deg, lag %.2f deg",
-                 fast.biggestStep, fast.lagAtEnd))
+    print(String(format: "slow sweep: biggest frame step %.3f deg, lag %.2f deg, overshoot %.2f deg",
+                 slow.biggestStep, slow.lagAtEnd, slow.overshoot))
+    print(String(format: "fast sweep: biggest frame step %.3f deg, lag %.2f deg, overshoot %.2f deg",
+                 fast.biggestStep, fast.lagAtEnd, fast.overshoot))
 
     var failures: [String] = []
     if slow.biggestStep > 0.25 {
@@ -1861,6 +1887,11 @@ if CommandLine.arguments.contains("--check") {
     }
     if slow.lagAtEnd > 2 { failures.append("slow sweep lags \(slow.lagAtEnd) deg") }
     if fast.lagAtEnd > 2 { failures.append("fast sweep lags \(fast.lagAtEnd) deg") }
+    // `lead` bounds this at one degree, so anything above catches the clamp
+    // being removed or widened rather than ordinary settling.
+    for (name, s) in [("slow", slow), ("fast", fast)] where s.overshoot > 1.2 {
+        failures.append("\(name) sweep sails \(s.overshoot) deg past a stopped lid")
+    }
     guard failures.isEmpty else {
         FileHandle.standardError.write(Data((failures.joined(separator: "\n") + "\n").utf8))
         exit(1)
