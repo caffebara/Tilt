@@ -503,18 +503,6 @@ final class StageView: NSView {
         hint.add(fade, forKey: "fade")
     }
 
-    /// A click is the escape hatch that does not need the app to be frontmost.
-    ///
-    /// Both halves are load-bearing. Without `acceptsFirstMouse` AppKit spends the
-    /// first click on activating the window and never delivers it, which is
-    /// exactly the case this hatch exists for: the app did not have focus.
-    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-
-    override func mouseDown(with event: NSEvent) {
-        onDismiss?()
-    }
-
-    var onDismiss: (() -> Void)?
 }
 
 // MARK: - Capture
@@ -1143,7 +1131,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                styleMask: [.borderless, .nonactivatingPanel],
                                backing: .buffered, defer: false)
         window.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()))
-        window.collectionBehavior = [.fullScreenNone, .stationary, .ignoresCycle, .canJoinAllSpaces]
+        // `fullScreenAuxiliary`, not `fullScreenNone`. The three fullscreen
+        // behaviours are exclusive and they answer different questions:
+        // `Primary` is whether this window can itself go fullscreen, `None` is
+        // that it takes no part in fullscreen at all, and `Auxiliary` is whether
+        // it may be shown alongside somebody else's fullscreen window. Only the
+        // last one is the question this overlay is asking.
+        //
+        // `canJoinAllSpaces` does not cover it. That carries the window across
+        // ordinary spaces; a fullscreen space is gated separately, which is why
+        // the overlay simply never appeared over a fullscreen app.
+        window.collectionBehavior = [.fullScreenAuxiliary, .stationary,
+                                     .ignoresCycle, .canJoinAllSpaces]
         window.backgroundColor = .black
         window.isOpaque = true
         window.contentView = view
@@ -1171,18 +1170,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self.view.setWallpaper(await capture.captureWallpaper(on: screen))
         }
 
-        // A second way out that does not depend on the app winning activation.
-        // A click on an inactive app's window still reaches it, so this works in
-        // the case where escape cannot: a fullscreen app holding the foreground
-        // when the lid dips.
-        view.onDismiss = { [weak self] in
-            self?.suppression.insert(.dismissed)
-            self?.disengage()
-        }
-
         // Escape, and nothing else. Every other key used to be swallowed here and
         // fed to hidden state that no menu item could see or undo: one stray "0"
         // flipped the fold direction for the rest of the process's life.
+        //
+        // This is now the only key that takes the overlay down. A click used to
+        // as well, on the argument that a fullscreen app holding the foreground
+        // would keep escape from reaching us. Measured 2026-09-15, once
+        // `fullScreenAuxiliary` made the overlay appear over a fullscreen app at
+        // all: escape reaches it there too, so the hatch was justified by a case
+        // that does not exist, and it cost a fold every time a hand closing the
+        // lid brushed the trackpad. The exit that cannot fail is the lid itself,
+        // which disengages on the way back up.
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.engaged, event.keyCode == 53 else { return event }
             self.suppression.insert(.dismissed)

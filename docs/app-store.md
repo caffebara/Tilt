@@ -41,8 +41,9 @@ Worth writing in the review notes, since the review machine may have no lid at a
 > screen at the shielding window level and takes key focus, and the system asks about any window
 > in that position. The only key handling is a local monitor, which sees nothing but events
 > already dispatched to Tilt and passes every one of them through untouched except escape.
-> Measured with the permission switched off: escape still dismisses the overlay, and so does a
-> click. The prompt can be denied and nothing is lost.
+> Measured with the permission switched off: escape still dismisses the overlay, because a local
+> monitor needs no permission to see a key already dispatched to its own process. Opening the lid
+> takes it down too, and that one cannot fail. The prompt can be denied and nothing is lost.
 >
 > On a Mac with no lid angle sensor, or with the lid shut and an external display, Tilt does
 > nothing at all, and its menu says which of the two it is: "No lid angle sensor on this Mac" or
