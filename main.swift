@@ -966,7 +966,21 @@ final class SwitchRow: NSView {
     required init?(coder: NSCoder) { fatalError() }
 }
 
-final class OverlayWindow: NSWindow {
+/// A panel rather than a window, and non-activating, so that covering the screen
+/// does not take the front app away from the user.
+///
+/// Activating is what used to do it, and it changed the picture: macOS draws a
+/// heavier shadow under the active app's windows, so the moment the overlay
+/// engaged every window underneath dropped to its inactive shadow, and the live
+/// capture showed that happening. It read as the whole desktop flinching at the
+/// threshold, which is the opposite of a plane held still.
+///
+/// Measured 2026-09-15, same panel both ways: with `.nonactivatingPanel` and no
+/// `NSApp.activate`, `NSWorkspace.frontmostApplication` stayed on the app that
+/// had it and the panel still came back `isKeyWindow`. Activating moved
+/// frontmost to this process. Key either way, which is what the escape monitor
+/// and the typing guard in `show` depend on.
+final class OverlayWindow: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
 }
@@ -1121,7 +1135,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         view.glass = glass
         view.viewingDistanceCm = distanceCm
         applyScreenMetrics(screen)
-        window = OverlayWindow(contentRect: screen.frame, styleMask: .borderless,
+        window = OverlayWindow(contentRect: screen.frame,
+                               styleMask: [.borderless, .nonactivatingPanel],
                                backing: .buffered, defer: false)
         window.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()))
         window.collectionBehavior = [.fullScreenNone, .stationary, .ignoresCycle, .canJoinAllSpaces]
@@ -1343,7 +1358,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // lid closing over a terminal means typing blind into a live session -
         // and the escape key cannot reach us either, because a local event
         // monitor only sees events already dispatched to this process.
-        NSApp.activate(ignoringOtherApps: true)
+        // Key, but not active. `makeKeyAndOrderFront` alone is what a
+        // non-activating panel needs; the `NSApp.activate` that used to sit here
+        // is what took the front app away and changed every shadow underneath.
         window.makeKeyAndOrderFront(nil)
         NSAnimationContext.runAnimationGroup { context in
             context.duration = Self.fade
@@ -1384,8 +1401,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func finishDisengage() {
-        // Hand focus back to whatever the user was in before the lid moved.
-        if NSApp.isActive { NSApp.hide(nil) }
+        // Nothing to hand back: the panel is non-activating, so the app the user
+        // was in never lost the front. This used to be `NSApp.hide(nil)`, which
+        // was the other half of taking it.
         sampler?.schedule(deadline: .now(), repeating: 1.0 / Self.idleSampleHz)
         displayLink?.isPaused = true
         capture.stop()
