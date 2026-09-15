@@ -27,8 +27,9 @@ the screen recording permission.
 4. Open `Tilt.xcodeproj`, set the team on the Tilt target, leave signing automatic.
 5. Product, then Archive, then Distribute App to App Store Connect.
 6. Fill in App Store Connect: name, description, screenshots, and a privacy policy URL, which
-   every app needs. The policy has to say the screen capture never leaves the machine, because
-   that is the question the capture raises.
+   every app needs. The policy is written, at `docs/privacy-policy.md`, and says the screen
+   capture never leaves the machine, because that is the question the capture raises. It needs a
+   contact address filled in and somewhere to be served from.
 
 Worth writing in the review notes, since the review machine may have no lid at all:
 
@@ -54,7 +55,14 @@ Worth writing in the review notes, since the review machine may have no lid at a
 Ordered, and the first one gates the rest: App Store Connect will not reserve a name somebody else
 holds, so there is no point filling in a listing under a name that turns out to be taken.
 
-1. **Reserve the name.** Several apps beginning with Tilt are already on the store.
+1. **Reserve the name.** Checked on 2026-09-15 through the iTunes Search API, US and KR storefronts,
+   macOS and iOS: **no shipping app is called exactly "Tilt".** The near misses are all longer
+   names, so none of them holds it: "Tilt Shift Focus", "Tilt Shift : Miniature Effect", "Tilt
+   Shift for Final Cut Pro", "Tilt - Posture Monitor", "TILTRIRIS".
+
+   That is a good signal and not a guarantee. The search API lists apps currently on sale, and a
+   name reserved in App Store Connect by somebody who never shipped is invisible to it. Only
+   entering the name in App Store Connect settles it, which is why this is still step 1.
 2. ~~`PrivacyInfo.xcprivacy`~~ **Done.** `Resources/PrivacyInfo.xcprivacy` declares no tracking, no
    collected data, and the one required-reason API this app touches: `UserDefaults`, reason CA92.1
    (ITMS-91053). It is wired into **both** build paths, the `PBXResourcesBuildPhase` in
@@ -79,8 +87,23 @@ holds, so there is no point filling in a listing under a name that turns out to 
    the export compliance question App Store Connect otherwise asks on every single upload. The key
    is real: Xcode's `CoreBuildSystem.xcspec` carries it as
    `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption`. Verified present in both built bundles.
-5. Screenshots, a privacy policy URL, and the App Privacy questionnaire, whose answer is that no
-   data is collected.
+5. **The privacy policy is written**, at `docs/privacy-policy.md`. It still needs two things: a
+   contact address, which is a placeholder in the file, and a URL, because App Store Connect wants
+   a page rather than a repository file. The cheapest host is GitHub Pages on this repository; the
+   rendered file on github.com also works.
+
+   Every claim in it was checked against the code on 2026-09-15 rather than written from the usual
+   template: `main.swift` contains no networking API at all, its only file write is stderr in the
+   `--check` path, the captured frame is one `CVPixelBuffer` released when the next lands, and the
+   stored settings are exactly the six keys at `main.swift:1023-1028`.
+6. Screenshots, and the App Privacy questionnaire, whose answer is that no data is collected.
+   Answer it as "Data Not Collected"; nothing in the app contradicts that.
+
+   Screenshots are the awkward one, and worth thinking about before the day of. The effect only
+   exists while the lid is partly closed, which is exactly when nobody is looking at the screen.
+   `screencapture -T <seconds>` on a delay, run before folding the lid, is the way to get one
+   without a second machine. Decision 005 removed the demo, so a screenshot and an app preview are
+   what a reviewer sees instead of the effect.
 
 Two things to check on the exported archive rather than before it:
 
