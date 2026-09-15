@@ -3,6 +3,7 @@ import CoreMedia
 import IOKit.hid
 import QuartzCore
 import ScreenCaptureKit
+import ServiceManagement
 
 // MARK: - Lid angle
 
@@ -996,6 +997,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var suppression: Suppression = []
     private var suppressed: Bool { !suppression.isEmpty }
     private var captureFailure: Error?
+    private var loginItemFailure: Error?
+    /// Read only in `menuNeedsUpdate`, never in `populate`. See the row there.
+    private var loginStatus = SMAppService.Status.notRegistered
     private var lastStep: CFTimeInterval = 0
     private var engaged = false
     private var nsScreen: NSScreen!
@@ -1593,10 +1597,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         glassItem.view = glassRow
         menu.addItem(glassItem)
 
+        // Everything above shapes the effect; everything below is the app itself.
+        menu.addItem(.separator())
+
         let angleRow = NSMenuItem()
         angleRow.view = SwitchRow(title: "Show angle in menu bar", isOn: showsAngle,
                                   target: self, action: #selector(showsAngleSwitched(_:)))
         menu.addItem(angleRow)
+
+        if Self.isInstalledCopy {
+            // The one setting the system owns rather than UserDefaults, so it is
+            // read back every time the menu opens: System Settings can revoke
+            // consent behind the app, and a remembered answer would be a switch
+            // saying on about something that is off.
+            //
+            // Read in `menuNeedsUpdate` rather than here, because `populate` is
+            // not menu-scoped: `rebuildMenu` reaches it from eight places, two of
+            // them inside `engage`, where a synchronous launchd round trip would
+            // land on the main thread during the fade-in. Measured over 500 calls:
+            // p50 1.62 ms, worst 18 ms, which is two frames at 120 Hz.
+            let loginRow = NSMenuItem()
+            loginRow.view = SwitchRow(title: "Open at login",
+                                      isOn: Self.opensAtLogin(loginStatus),
+                                      target: self,
+                                      action: #selector(openAtLoginSwitched(_:)))
+            menu.addItem(loginRow)
+
+            // Registered, but consent was revoked in System Settings, and
+            // SMAppService.h says `register` then returns kSMErrorLaunchDeniedByUser.
+            // Only that pane can lift it, so point at it rather than leave a
+            // switch that cannot win.
+            if loginStatus == .requiresApproval {
+                let held = NSMenuItem(title: "Needs approval in Login Items…",
+                                      action: #selector(openLoginItemsSettings),
+                                      keyEquivalent: "")
+                held.target = self
+                menu.addItem(held)
+            }
+
+            // Shown once, by the open after the attempt. The switch beside it
+            // already reads the truth, so a row outliving the attempt would be
+            // the stale Try again that the capture path clears on line 1295.
+            if let failure = loginItemFailure {
+                loginItemFailure = nil
+                let row = NSMenuItem(
+                    title: "Could not change that: \(failure.localizedDescription)",
+                    action: nil, keyEquivalent: "")
+                row.isEnabled = false
+                menu.addItem(row)
+            }
+        }
 
 
         if let captureFailure {
@@ -1632,6 +1682,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
+        // The only launchd round trip in the file, and it is here rather than in
+        // `populate` because this is the one path that means a human is looking.
+        if Self.isInstalledCopy { loginStatus = SMAppService.mainApp.status }
         populate(menu)
     }
 
@@ -1653,6 +1706,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func showsAngleSwitched(_ sender: NSSwitch) {
         showsAngle = sender.state == .on
+    }
+
+    /// `requiresApproval` means registered, with consent revoked in System
+    /// Settings, so the item exists and the switch has to say so. Drawn off there
+    /// it would invite a `register` that fails and changes nothing.
+    private static func opensAtLogin(_ status: SMAppService.Status) -> Bool {
+        status == .enabled || status == .requiresApproval
+    }
+
+    /// Only an installed copy offers the row. `SMAppService.mainApp` registers
+    /// whichever bundle is running, and every bundle this project builds carries
+    /// the shipping id: `build.sh` writes Tilt.app beside itself and deletes it at
+    /// the top of the next run, and `--test` writes the same id into $TMPDIR. A
+    /// toggle in either points the user's login item at a path about to vanish,
+    /// and `--test` would point it at the unsandboxed test-hook binary. Measured
+    /// 2026-09-15: one made from the build directory sat enabled in the
+    /// background task database aimed at a bundle build.sh had already removed.
+    private static var isInstalledCopy: Bool {
+        let path = Bundle.main.bundleURL.path
+        return path.hasPrefix("/Applications/")
+            || path.hasPrefix(NSHomeDirectory() + "/Applications/")
+    }
+
+    /// Nothing is written down here: the system keeps the answer and
+    /// `menuNeedsUpdate` reads it back. The menu stays open under this click and
+    /// nothing repaints it, so without the last two lines a throw would leave the
+    /// switch sitting at the position the user asked for and never got.
+    @objc private func openAtLoginSwitched(_ sender: NSSwitch) {
+        loginItemFailure = nil
+        do {
+            if sender.state == .on {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            loginItemFailure = error
+        }
+        loginStatus = SMAppService.mainApp.status
+        sender.state = Self.opensAtLogin(loginStatus) ? .on : .off
+    }
+
+    @objc private func openLoginItemsSettings() {
+        // The framework opens the right pane itself, so there is no
+        // x-apple.systempreferences identifier here to go stale.
+        SMAppService.openSystemSettingsLoginItems()
     }
 
     @objc private func thresholdSlid(_ sender: NSSlider) {
