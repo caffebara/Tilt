@@ -37,8 +37,15 @@ Mac:
 - whether the angle appears in the menu bar
 - whether you have already seen the first-run hint
 
-There is nothing else. No usage data, no identifiers, no analytics, no crash reporting, and no
-third-party services of any kind. Tilt has no account, no sign-in, and no server.
+No usage data, no identifiers, no analytics, no crash reporting, and no third-party services of any
+kind. Tilt has no account, no sign-in, and no server.
+
+**One thing is kept outside that container, by macOS rather than by Tilt.** If you switch on "Open
+at login", macOS records that choice in its own background task database, which is where every
+login item on your Mac lives. It holds the fact that you asked for Tilt to start, and nothing
+about you. You can see it and switch it off at any time in System Settings, under General and then
+Login Items, and Tilt's own menu reads that setting back from the system rather than keeping a
+copy of its own.
 
 ## Permissions
 

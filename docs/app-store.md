@@ -69,8 +69,9 @@ holds, so there is no point filling in a listing under a name that turns out to 
    `Tilt.xcodeproj` and a `cp` in `build.sh`, because one path only is exactly the bug 003 names.
    Verified by building both: the file lands in both bundles and the two copies are identical.
 
-   The one thing left open is `CACurrentMediaTime()` at `main.swift:534`, the only other
-   required-reason candidate in the code. It schedules a `CAAnimation.beginTime` rather than
+   The one thing left open is `CACurrentMediaTime()` (`main.swift:499`, and grep for it, because
+   the line numbers in this file rot), the only other required-reason candidate in the code. It
+   schedules a `CAAnimation.beginTime` rather than
    reading boot time, and nothing else in the file touches file timestamps, disk space or the
    active keyboard. Check it against Apple's current required-reason list when the account exists,
    since that list is versioned and is not readable from here.
@@ -95,7 +96,7 @@ holds, so there is no point filling in a listing under a name that turns out to 
    Every claim in it was checked against the code on 2026-09-15 rather than written from the usual
    template: `main.swift` contains no networking API at all, its only file write is stderr in the
    `--check` path, the captured frame is one `CVPixelBuffer` released when the next lands, and the
-   stored settings are exactly the six keys at `main.swift:1023-1028`.
+   stored settings are exactly the six `UserDefaults` keys (`main.swift:1027-1032`, grep `Key = "`).
 6. Screenshots, and the App Privacy questionnaire, whose answer is that no data is collected.
    Answer it as "Data Not Collected"; nothing in the app contradicts that.
 
@@ -162,7 +163,7 @@ walked back, in exchange for nothing measured.
 
 **The two IOKit error codes in this repository are both correct.** `0xE00002CD` is
 `kIOReturnNotOpen` and `0xE00002E2` is `kIOReturnNotPermitted` (`IOReturn.h:115` and `:138`), and
-they are one failure seen at two call sites: `main.swift:41` discards what `IOHIDManagerOpen`
+they are one failure seen at two call sites: `main.swift:42` discards what `IOHIDManagerOpen`
 returns, so the code the app can actually surface is the `kIOReturnNotOpen` that
 `IOHIDDeviceGetReport` returns afterwards. Reconciling them to a single value deletes the record
 that this is a permission failure, and a reader left holding "device not open" fixes it by opening
