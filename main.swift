@@ -652,7 +652,11 @@ final class DesktopCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         configuration.height = Int(CGFloat(display.height) * scale)
         configuration.pixelFormat = kCVPixelFormatType_32BGRA
         configuration.backgroundColor = .clear // everything but the windows
-        configuration.showsCursor = true
+        // The pointer is already on screen, above the overlay. Capturing it too
+        // paints a second one into the tilted plane, so the two separate as soon
+        // as the fold starts and you are looking at two cursors. The wallpaper
+        // still has always been taken without it; this is the same rule.
+        configuration.showsCursor = false
         configuration.queueDepth = 5
         configuration.minimumFrameInterval = CMTime(value: 1, timescale: 120)
         config = configuration
