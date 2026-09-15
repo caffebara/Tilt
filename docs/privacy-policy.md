@@ -47,6 +47,11 @@ about you. You can see it and switch it off at any time in System Settings, unde
 Login Items, and Tilt's own menu reads that setting back from the system rather than keeping a
 copy of its own.
 
+**Deleting Tilt does not remove that entry**, which is worth knowing because it is not what most
+people expect. Measured on 2026-09-15: with the application bundle deleted, the entry was still
+recorded and still switched on. If you remove Tilt and want the entry gone too, switch it off in
+Login Items. That is the only copy of it, and it is the system's rather than ours.
+
 ## Permissions
 
 **Screen Recording** is required, because drawing your desktop in perspective means reading it
