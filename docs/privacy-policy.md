@@ -78,5 +78,4 @@ with it.
 
 ## Contact
 
-<!-- Fill this in before publishing the page. Apple expects a working contact route. -->
-Questions about this policy: `<contact address>`
+Questions about this policy: sxong2x@gmail.com
