@@ -1595,7 +1595,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             open.target = self
             menu.addItem(open)
             menu.addItem(.separator())
-            addQuit(to: menu)
+            addFooter(to: menu)
             return
         }
 
@@ -1725,10 +1725,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         menu.addItem(.separator())
-        addQuit(to: menu)
+        addFooter(to: menu)
     }
 
-    private func addQuit(to menu: NSMenu) {
+    /// The rows every state of the menu ends with, including the one before the
+    /// screen recording permission exists. 5.1.1(i) wants the privacy policy
+    /// linked "within the app in an easily accessible manner", and an app with no
+    /// window and no dock icon has this menu and nothing else, so the link cannot
+    /// live behind a state the user may never reach.
+    private func addFooter(to menu: NSMenu) {
+        let privacy = NSMenuItem(title: "Privacy Policy", action: #selector(openPrivacyPolicy),
+                                 keyEquivalent: "")
+        privacy.target = self
+        menu.addItem(privacy)
         // Our own selector rather than NSApplication.terminate on NSApp. Pointed
         // at the application object the row drew a symbol of its own in the
         // state column, which is where a checkmark goes, so the title sat a
@@ -1737,6 +1746,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                               keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
+    }
+
+    /// Served from a repository that holds the policy and nothing else. This one
+    /// is private, and a repository is public or private whole, so publishing the
+    /// policy out of it would have published the source too.
+    private static let privacyPolicyURL = URL(string: "https://caffebara.github.io/tilt-privacy/")!
+
+    @objc private func openPrivacyPolicy() {
+        NSWorkspace.shared.open(Self.privacyPolicyURL)
     }
 
     @objc private func quitTilt() {

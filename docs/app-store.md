@@ -27,9 +27,9 @@ the screen recording permission.
 4. Open `Tilt.xcodeproj`, set the team on the Tilt target, leave signing automatic.
 5. Product, then Archive, then Distribute App to App Store Connect.
 6. Fill in App Store Connect: name, description, screenshots, and a privacy policy URL, which
-   every app needs. The policy is written, at `docs/privacy-policy.md`, and says the screen
-   capture never leaves the machine, because that is the question the capture raises. It needs a
-   contact address filled in and somewhere to be served from.
+   every app needs. It is written and served, at <https://caffebara.github.io/tilt-privacy/>,
+   and says the screen capture never leaves the machine, because that is the question the capture
+   raises.
 
 Worth writing in the review notes, since the review machine may have no lid at all:
 
@@ -89,15 +89,18 @@ holds, so there is no point filling in a listing under a name that turns out to 
    the export compliance question App Store Connect otherwise asks on every single upload. The key
    is real: Xcode's `CoreBuildSystem.xcspec` carries it as
    `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption`. Verified present in both built bundles.
-5. **The privacy policy is written**, at `docs/privacy-policy.md`. It still needs two things: a
-   contact address, which is a placeholder in the file, and a URL, because App Store Connect wants
-   a page rather than a repository file. The cheapest host is GitHub Pages on this repository; the
-   rendered file on github.com also works.
+5. ~~The privacy policy~~ **Done.** Served at https://caffebara.github.io/tilt-privacy/, from
+   `caffebara/tilt-privacy`, which holds nothing else. A repository's visibility is all or nothing,
+   so publishing the policy out of this one would have published the source with it, and a policy
+   nobody can open is not a policy. That repository is the only copy: the same text maintained in
+   two places drifts, and the copy that drifts is the one Apple reads.
 
-   Every claim in it was checked against the code on 2026-09-15 rather than written from the usual
-   template: `main.swift` contains no networking API at all, its only file write is stderr in the
-   `--check` path, the captured frame is one `CVPixelBuffer` released when the next lands, and the
-   stored settings are exactly the six `UserDefaults` keys (`main.swift:1027-1032`, grep `Key = "`).
+   Every claim in it was checked against the code rather than written from the usual template, and
+   that is what this repository still owes it. `main.swift` contains no networking API at all, its
+   only file write is stderr in the `--check` path, the captured frame is one `CVPixelBuffer`
+   released when the next lands, and the stored settings are exactly the six `UserDefaults` keys
+   (`main.swift:1027-1032`, grep `Key = "`). If any of those stops being true, the policy is wrong
+   and the change belongs in the same commit.
 6. Screenshots, and the App Privacy questionnaire, whose answer is that no data is collected.
    Answer it as "Data Not Collected"; nothing in the app contradicts that.
 
@@ -130,7 +133,7 @@ line before trusting the table.
 
 | clause | verdict | what decides it |
 | --- | --- | --- |
-| 2.1 App Completeness | **not met** | `docs/privacy-policy.md` ends in a `<contact address>` placeholder and has no URL. 2.1(a) wants placeholders scrubbed and URLs functional |
+| 2.1 App Completeness | met | the policy's contact address is filled in and it is served at https://caffebara.github.io/tilt-privacy/, verified HTTP 200 on 2026-09-16 |
 | 2.3.1 hidden features | **question** | `main.swift` ships a `--check` mode in the submitted binary. Undocumented to the user, which is what the clause names. Describe it in Notes for Review, or gate it |
 | 2.4.5(i) sandbox | met | `Resources/Tilt.entitlements` carries `com.apple.security.app-sandbox` |
 | 2.4.5(ii) Xcode packaging, self-contained | met | `Tilt.xcodeproj` is the submission path, per 003. The bundle is seven files, no helper, nothing in a shared location. `build.sh` is the local loop and is not a submission path |
@@ -144,7 +147,7 @@ line before trusting the table.
 | 2.5.1 public APIs | met | no `CGS`/`SLS` symbol, no `dlopen`, no `@_silgen_name`, no `NSClassFromString`. The sensor is public IOKit; what is undocumented is the HID usage value, not the API |
 | 2.5.14 recording | met | consent is the system prompt; the indication is drawn by macOS in two places, and the structural argument below is the primary answer since the clause asks the app for it |
 | 4.2 Minimum Functionality | judgement | a native app reading a hardware sensor, not a repackaged anything. The exposure is 005's accepted risk: on a reviewer's machine with no lid sensor it does nothing |
-| 5.1.1(i) privacy policy in two places | **not met** | the policy exists but has no URL, and nothing in the app links to one. The App Store Connect half is a form field; the in-app half needs a menu row |
+| 5.1.1(i) privacy policy in two places | met in the app, one field left | the menu opens https://caffebara.github.io/tilt-privacy/. The App Store Connect half is a form field filled in at submission |
 
 ### 2.5.14, which is met twice over
 
@@ -174,16 +177,22 @@ for as long as it runs, and it stops the moment the overlay does. An indicator w
 later copy of the thing already filling the display. That argument belongs in the review notes,
 because it is invisible from the clause.
 
-### The two that are not met
+### The two that were not met, and what closed them
 
-**5.1.1(i)** is the one to fix in code. The clause is unconditional, "All apps", and wants the link
-in App Store Connect **and** inside the app. `docs/privacy-policy.md` is written and every claim in
-it was checked against the source, but no URL serves it and no row in the menu points at one. For an
-app with no window the menu is the only surface there is, so this is one `NSMenuItem` beside the
-existing settings row, opening the hosted policy. It cannot be closed until the policy has a URL, so
-hosting comes first.
+Both were the same missing thing, a policy nobody could open, and both closed on 2026-09-16.
 
-**2.1(a)** closes with that same URL and with the contact address the policy still leaves blank.
+**5.1.1(i)** is unconditional, "All apps", and wants the link in App Store Connect **and** inside
+the app. The policy is served at <https://caffebara.github.io/tilt-privacy/> and the menu opens it
+from `addFooter`, which runs in both states the menu has. The App Store Connect half is a form
+field and is filled in at submission; nothing in the repository can close that one.
+
+**2.1(a)** wanted the placeholder scrubbed and the URL functional. The contact address is filled
+in and the URL answers 200.
+
+What is left is not a clause but a dependency: the policy's claims are true of this code, and the
+code can change. `main.swift` gaining a network call, a file write, or a seventh stored setting
+makes the served policy false, and the repository that serves it will not notice. Whoever makes
+that change updates both.
 
 ## Known risks
 
