@@ -487,7 +487,7 @@ final class StageView: NSView {
     /// an effect whose whole point is the picture, and none at all leaves a user
     /// covered by something they were never told how to dismiss.
     func showHint() {
-        hint.string = "esc or click to dismiss"
+        hint.string = "esc to dismiss"
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         hint.opacity = 1
@@ -1604,7 +1604,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                target: self, action: #selector(enabledSwitched(_:)))
         menu.addItem(onOff)
 
-        if nsScreen == nil {
+        // The live screen list, not `nsScreen`. That property is assigned and
+        // never cleared, so `nsScreen == nil` was true only before the first
+        // `setUp` and a panel that went away afterwards left this row unshown:
+        // exactly the clamshell case 001 says the menu reports, and the case
+        // `docs/app-store.md` promises App Review that it reports. 001 already
+        // settled the shape, for `engage()`: ask the screen rather than a
+        // remembered answer, because `nsScreen` outlives the screen it names.
+        if Self.builtInScreen() == nil {
             let none = NSMenuItem(title: "Waiting for the built-in display",
                                   action: nil, keyEquivalent: "")
             none.isEnabled = false
@@ -1615,6 +1622,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                   action: nil, keyEquivalent: "")
             none.isEnabled = false
             menu.addItem(none)
+        }
+        // A dismissal holds until the lid comes back up, which is what makes
+        // escape mean anything: without it the overlay would return on the next
+        // frame and the key would do nothing. But the app said none of that, so
+        // an app behaving exactly as designed was indistinguishable from a
+        // broken one, and finding out cost an afternoon.
+        //
+        // It reads the flag and offers no way to clear it. Every reason in
+        // `Suppression` is lifted by the thing that set it, and a menu row is
+        // not the lid.
+        if suppression.contains(.dismissed) {
+            let held = NSMenuItem(
+                title: "Dismissed. Open the lid past \(Int(threshold + 2))° to re-arm.",
+                action: nil, keyEquivalent: "")
+            held.isEnabled = false
+            menu.addItem(held)
         }
 
         menu.addItem(.separator())
