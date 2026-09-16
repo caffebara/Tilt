@@ -36,14 +36,12 @@ Worth writing in the review notes, since the review machine may have no lid at a
 > Tilt reads the MacBook lid angle from the built-in HID sensor and renders the desktop in
 > perspective as the lid closes. `com.apple.security.device.usb` is what grants IOKit access to
 > that sensor and is used for nothing else, no external or removable device. Screen recording is
-> what draws the desktop as the tilting plane. The first time the overlay appears macOS also asks
-> for input monitoring. Tilt does not need it and does not request it: the overlay covers the
-> screen at the shielding window level and takes key focus, and the system asks about any window
-> in that position. The only key handling is a local monitor, which sees nothing but events
-> already dispatched to Tilt and passes every one of them through untouched except escape.
-> Measured with the permission switched off: escape still dismisses the overlay, because a local
-> monitor needs no permission to see a key already dispatched to its own process. Opening the lid
-> takes it down too, and that one cannot fail. The prompt can be denied and nothing is lost.
+>
+> what draws the desktop as the tilting plane. Tilt asks for no other permission, and in
+> particular does not ask for input monitoring. The only key handling is a local monitor, which
+> sees nothing but events already dispatched to Tilt's own process, reads each one only far enough
+> to tell whether it is escape, and passes every other one straight through. Nothing is stored or
+> counted. Opening the lid dismisses the overlay as well, without any key at all.
 >
 > On a Mac with no lid angle sensor, or with the lid shut and an external display, Tilt does
 > nothing at all, and its menu says which of the two it is: "No lid angle sensor on this Mac" or
@@ -70,8 +68,8 @@ holds, so there is no point filling in a listing under a name that turns out to 
    `Tilt.xcodeproj` and a `cp` in `build.sh`, because one path only is exactly the bug 003 names.
    Verified by building both: the file lands in both bundles and the two copies are identical.
 
-   The one thing left open is `CACurrentMediaTime()` (`main.swift:499`, and grep for it, because
-   the line numbers in this file rot), the only other required-reason candidate in the code. It
+   The one thing left open is `CACurrentMediaTime()` in `main.swift`, grep for it, the only other
+   required-reason candidate in the code. It
    schedules a `CAAnimation.beginTime` rather than
    reading boot time, and nothing else in the file touches file timestamps, disk space or the
    active keyboard. Check it against Apple's current required-reason list when the account exists,
@@ -99,8 +97,12 @@ holds, so there is no point filling in a listing under a name that turns out to 
    that is what this repository still owes it. `main.swift` contains no networking API at all, its
    only file write is stderr in the `--check` path, the captured frame is one `CVPixelBuffer`
    released when the next lands, and the stored settings are exactly the six `UserDefaults` keys
-   (`main.swift:1027-1032`, grep `Key = "`). If any of those stops being true, the policy is wrong
-   and the change belongs in the same commit.
+   (grep `Key = "` in `main.swift`). If any of those stops being true, the policy is wrong and the
+   change belongs in the same commit.
+
+   **Line numbers are not used here any more.** Three were repaired on 2026-09-15 and one of them
+   had rotted again four commits later, so the pin is the defect rather than the particular number.
+   A grep target survives an edit above it; a line number does not.
 6. Screenshots, and the App Privacy questionnaire, whose answer is that no data is collected.
    Answer it as "Data Not Collected"; nothing in the app contradicts that.
 
@@ -147,7 +149,7 @@ line before trusting the table.
 | 2.5.1 public APIs | met | no `CGS`/`SLS` symbol, no `dlopen`, no `@_silgen_name`, no `NSClassFromString`. The sensor is public IOKit; what is undocumented is the HID usage value, not the API |
 | 2.5.14 recording | met | consent is the system prompt; the indication is drawn by macOS in two places, and the structural argument below is the primary answer since the clause asks the app for it |
 | 4.2 Minimum Functionality | judgement | a native app reading a hardware sensor, not a repackaged anything. The exposure is 005's accepted risk: on a reviewer's machine with no lid sensor it does nothing |
-| 5.1.1(i) privacy policy in two places | met in the app, one field left | the menu opens https://caffebara.github.io/tilt-privacy/. The App Store Connect half is a form field filled in at submission |
+| 5.1.1(i) privacy policy, and what it must say | met in the app, one field left | the menu opens <https://caffebara.github.io/tilt-privacy/>, and the page answers all four content requirements, not only the link. See below: two of its sentences were false until 2026-09-16 |
 
 ### 2.5.14, which is met twice over
 
@@ -189,6 +191,15 @@ field and is filled in at submission; nothing in the repository can close that o
 **2.1(a)** wanted the placeholder scrubbed and the URL functional. The contact address is filled
 in and the URL answers 200.
 
+**And the clause is four requirements, not one.** 5.1.1(i) asks for the link, then for what data is
+collected and how it is used, then for third parties, then to "explain its data retention/deletion
+policies and describe how a user can revoke consent". This table read "met" off the link alone for
+a day. Checked properly on 2026-09-16, the page was missing the retention and deletion half
+entirely and carried two sentences that were not true: that Tilt does not read keystrokes, when a
+local monitor reads every key far enough to tell whether it is escape, and an explanation of the
+input monitoring prompt by the overlay's window position, which `d6d88ee` had disproved. Both are
+corrected and the missing half is written. A link that resolves is not a policy that complies.
+
 What is left is not a clause but a dependency: the policy's claims are true of this code, and the
 code can change. `main.swift` gaining a network call, a file write, or a seventh stored setting
 makes the served policy false, and the repository that serves it will not notice. Whoever makes
@@ -196,15 +207,19 @@ that change updates both.
 
 ## Known risks
 
-No lid angle app is on the Mac App Store today, so there is no precedent either way. Three things
-a reviewer may ask about: a USB entitlement on an app that touches no removable device, a sensor
+No lid angle app is on the Mac App Store today, so there is no precedent either way. Two things a
+reviewer may ask about: a USB entitlement on an app that touches no removable device, and a sensor
 whose HID usage Apple has not documented, although it is read through public IOKit calls rather
-than a private API, and a keystroke prompt on an app that does not type. That last one arrives
-with no explanation of its own, unlike screen recording, which this app introduces with a panel
-of its own before macOS asks. Measured on 2026-09-14: launching does not raise it, the first
-engagement does, so a reviewer who never gets the overlay on screen will never see it. Denying it
-changes nothing, which is the part worth saying out loud, and the app never appears in the Input
-Monitoring list at all, because it never asks: the prompt is the window server's, not Tilt's.
+than a private API.
+
+A third used to be here, an input monitoring prompt, and it is gone rather than mitigated.
+`d6d88ee` isolated it by building three throwaway apps instead of reasoning about it, after four
+guesses about the overlay had all been wrong: a borderless full-screen window at the shielding
+level taking key focus raises no prompt, a HID manager matching nil raises it with no window on
+screen at all, and a HID manager matching usage page 0x20 usage 0x8A raises none. The app matches
+the one sensor now, so the prompt does not arrive. **The paragraph that used to sit here explained
+it by the overlay's window position, which is precisely the hypothesis that commit disproved**, and
+it survived in this file for two days after the code stopped raising the prompt at all.
 
 The name is worth checking early, since several apps beginning with Tilt are already there. It is
 step 1 above because it gates the upload rather than the review.
@@ -237,8 +252,8 @@ walked back, in exchange for nothing measured.
 
 **The two IOKit error codes in this repository are both correct.** `0xE00002CD` is
 `kIOReturnNotOpen` and `0xE00002E2` is `kIOReturnNotPermitted` (`IOReturn.h:115` and `:138`), and
-they are one failure seen at two call sites: `main.swift:42` discards what `IOHIDManagerOpen`
-returns, so the code the app can actually surface is the `kIOReturnNotOpen` that
+they are one failure seen at two call sites: in `main.swift` the `IOHIDManagerOpen` call discards
+what it returns, so the code the app can actually surface is the `kIOReturnNotOpen` that
 `IOHIDDeviceGetReport` returns afterwards. Reconciling them to a single value deletes the record
 that this is a permission failure, and a reader left holding "device not open" fixes it by opening
 the device and drops `com.apple.security.device.usb`. `AGENTS.md` says what that costs.
