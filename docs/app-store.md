@@ -142,16 +142,31 @@ line before trusting the table.
 | 2.4.5(viii) current OS | met | `LSMinimumSystemVersion` 14.0, running on 26.1 |
 | 2.4.5(ix) one bundle for localisation | met | no `.lproj`, English only |
 | 2.5.1 public APIs | met | no `CGS`/`SLS` symbol, no `dlopen`, no `@_silgen_name`, no `NSClassFromString`. The sensor is public IOKit; what is undocumented is the HID usage value, not the API |
-| 2.5.14 recording | met by construction | see below, and it has to be said out loud |
+| 2.5.14 recording | met | consent is the system prompt; the indication is drawn by macOS in two places, and the structural argument below is the primary answer since the clause asks the app for it |
 | 4.2 Minimum Functionality | judgement | a native app reading a hardware sensor, not a repackaged anything. The exposure is 005's accepted risk: on a reviewer's machine with no lid sensor it does nothing |
 | 5.1.1(i) privacy policy in two places | **not met** | the policy exists but has no URL, and nothing in the app links to one. The App Store Connect half is a form field; the in-app half needs a menu row |
 
-### 2.5.14, which is met by construction and reads as unmet
+### 2.5.14, which is met twice over
 
-The clause wants two things, and only the first has a system prompt behind it: explicit consent, and
-a clear visual or audible indication while recording. macOS asks for the screen recording permission
-on its own. Nothing makes an app show an indicator, so a reviewer checking this clause looks for a
-badge and does not find one.
+The clause wants two things: explicit consent, and a clear visual or audible indication while
+recording. macOS asks for the screen recording permission on its own, which settles consent.
+
+**There are two indications, and macOS draws both.** Observed on 2026-09-16 while the overlay was
+up: a purple indicator in the menu bar, and a second one on the front window beside its close,
+minimise and zoom buttons. The system's own record agrees: `ControlCenter` logs
+`Sorted active attributions from SystemStatus update: [[scr] Tilt (io.sxong.tilt)]` as the capture
+starts and drops it as the capture ends. Tilt draws neither and has no code that could: its layers
+are the backdrop, its tint, the stage, the captured screen and its masks, the dim, and the hint.
+
+Neither can be switched off, which is the right answer to the question. The only privacy-adjacent
+property on `SCStreamConfiguration` is `presenterOverlayPrivacyAlertSetting`, and that governs the
+Presenter Overlay alert rather than the recording indicator: read from the SDK header, not recalled.
+An indicator an app could suppress would not be one, and suppressing it is the behaviour this very
+clause exists to forbid.
+
+What the indicators do not settle is whose obligation they discharge. The clause says the **app**
+must provide the indication, and these are the system's, so the argument below stays the primary
+answer and the indicators are corroboration.
 
 The answer here is structural. **Tilt's output is the capture.** There is no state in which it is
 recording and the user cannot see it, because what it records is drawn full screen in front of them

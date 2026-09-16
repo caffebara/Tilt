@@ -1633,10 +1633,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // `Suppression` is lifted by the thing that set it, and a menu row is
         // not the lid.
         if suppression.contains(.dismissed) {
-            let held = NSMenuItem(
-                title: "Dismissed. Open the lid past \(Int(threshold + 2))° to re-arm.",
-                action: nil, keyEquivalent: "")
-            held.isEnabled = false
+            // A NoteRow rather than a disabled item. The two rows above are
+            // states nothing can be done about, and they are short labels; this
+            // one says what brings the effect back, which is the shape the
+            // screen recording note already has.
+            let held = NSMenuItem()
+            held.view = NoteRow(
+                "Dismissed. Opening the lid past \(Int(threshold + 2))° brings it back.")
             menu.addItem(held)
         }
 
