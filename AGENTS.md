@@ -44,6 +44,15 @@ sensor and pass `--check`, measured through `arch -x86_64`; `docs/app-store.md` 
 It reads like a slice nobody has run, and pinning the project to arm64 to make the paths agree cuts
 a platform for nothing.
 
+**The privacy policy URL is compiled in, so the GitHub account name is load-bearing.**
+`main.swift` ships `https://caffebara.github.io/tilt-privacy/` as a string in the binary, and
+5.1.1(i) requires the app to carry that link. Renaming the account, renaming or deleting
+`caffebara/tilt-privacy`, or switching its Pages off points every already-released copy at a 404,
+and the only repair is a new
+submission. This one has cost nothing yet, unlike the rest of this section; it is here because the
+price of springing it is paid by users of a version that can no longer be changed. A domain of one's
+own would end it, and was judged not worth buying.
+
 **`com.apple.security.device.usb` is what reads the sensor**, not a USB device. Measured against a
 bundle id with no permission grants: sandbox alone fails `0xE00002CD`, sandbox with that
 entitlement succeeds. Removing it looks harmless and silently kills the app.
