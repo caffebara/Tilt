@@ -21,7 +21,12 @@ the screen recording permission.
 
 ## Steps that need the account
 
-1. Enrol in the Apple Developer Program.
+1. Enrol in the Apple Developer Program. **$99 a year**, read off Apple's own page on 2026-09-17:
+   "Join the Apple Developer Program, $99 annual membership. Enrol as an individual or
+   organization." The $299 one is the Enterprise programme, for private distribution inside a
+   company, and does not apply. Enrol as an individual: the store then shows a person's name in the
+   DEVELOPER field, which is why `NSHumanReadableCopyright` says Myungkeun Song rather than a
+   handle or an employer.
 2. Register the app id `io.sxong.tilt`.
 3. Create a Mac App Store provisioning profile for it.
 4. Open `Tilt.xcodeproj`, set the team on the Tilt target, leave signing automatic.
@@ -30,6 +35,21 @@ the screen recording permission.
    every app needs. It is written and served, at <https://caffebara.github.io/tilt-privacy/>,
    and says the screen capture never leaves the machine, because that is the question the capture
    raises.
+7. Tilt is being sold rather than given away, so the Paid Applications Agreement has to be accepted
+   and the banking and tax details supplied before a price can be set. None of that touches the
+   app, and all of it blocks the listing.
+
+   **Opt into the Small Business Program separately.** It is not automatic and it is the difference
+   between keeping 85% and keeping 70%. At a price of one thousand won that is 850 against 700, and
+   against the annual fee it is 158 sales a year to break even rather than 192. Arithmetic from
+   2026-09-17, when the fee came to about 135,000 won.
+
+   Price tiers are Apple's own list, so whether a thousand won is one of them is a question for
+   that screen rather than for this file. A price can be changed later, and so can free to paid.
+
+   Review is not affected. 4.2 is the clause that decides whether a utility is substantial enough,
+   and its text says nothing about price; the only place the guidelines separate paid from free is
+   3.1.3(f), about free companions to paid web tools. The risk below is the same either way.
 
 Worth writing in the review notes, since the review machine may have no lid at all:
 
