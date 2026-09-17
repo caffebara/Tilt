@@ -129,8 +129,30 @@ holds, so there is no point filling in a listing under a name that turns out to 
    Screenshots are the awkward one, and worth thinking about before the day of. The effect only
    exists while the lid is partly closed, which is exactly when nobody is looking at the screen.
    `screencapture -T <seconds>` on a delay, run before folding the lid, is the way to get one
-   without a second machine. Decision 005 removed the demo, so a screenshot and an app preview are
-   what a reviewer sees instead of the effect.
+   without a second machine. Decision 005 removed the demo, so a screenshot is what a reviewer sees
+   instead of the effect.
+
+   **A tilted MacBook is the obvious illustration and it is not allowed.** Apple's Marketing
+   Resources and Identity Guidelines, read 2026-09-17: product images are to be used "as is and
+   without modification", where modifications expressly include "cropping, **tilting**, or
+   obstructing any part of the images", and Unauthorized Uses opens with "Rendering in 3D or
+   creating any simulation of an Apple product". Both routes to showing a half-closed laptop are
+   named. The word "screenshot" does not appear anywhere in that document, which calls itself rules
+   for marketing materials, so whether it reaches a product page is not settled by it; but review
+   guideline 2.3.9 makes the rights to everything in a screenshot the developer's problem, and
+   there is no reason to put an expressly forbidden edit on the listing. A photograph of one's own
+   machine is neither a modified product image nor a 3D render, and is a different question this
+   file has not answered.
+
+   So the constraint is the hard one for this app: **the angle has to be conveyed without drawing
+   the hinge.** That is a design problem rather than a technical one, and it has no answer here.
+
+   Whether a preview video is even available for a macOS app is **unverified**. Three Mac App Store
+   product pages were fetched on 2026-09-17 and carried no video markup at all, which does not
+   separate "these apps have none" from "the page renders it in JavaScript". The upload screen in
+   App Store Connect answers it in a second and needs the account. Plan the stills to carry the
+   listing on their own; a video, if the field exists, is then a bonus rather than the thing the
+   explanation rests on.
 
 Two things to check on the exported archive rather than before it:
 
