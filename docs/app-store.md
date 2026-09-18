@@ -56,12 +56,23 @@ Worth writing in the review notes, since the review machine may have no lid at a
 > Tilt reads the MacBook lid angle from the built-in HID sensor and renders the desktop in
 > perspective as the lid closes. `com.apple.security.device.usb` is what grants IOKit access to
 > that sensor and is used for nothing else, no external or removable device. Screen recording is
->
 > what draws the desktop as the tilting plane. Tilt asks for no other permission, and in
 > particular does not ask for input monitoring. The only key handling is a local monitor, which
 > sees nothing but events already dispatched to Tilt's own process, reads each one only far enough
 > to tell whether it is escape, and passes every other one straight through. Nothing is stored or
 > counted. Opening the lid dismisses the overlay as well, without any key at all.
+>
+> Tilt draws no recording indicator of its own, and 2.5.14 is answered by what the app is rather
+> than by one it draws: Tilt's output is the capture. The captured screen fills the display in
+> front of the user for as long as the capture runs, and the capture stops the moment the overlay
+> does, so there is no state in which Tilt is recording and the user cannot see it. macOS draws
+> its own indicator in the menu bar and beside the front window's close button as well, observed
+> in both places while the overlay was up.
+>
+> The shipped binary also answers one command line flag. `Tilt --check` reads the lid angle once,
+> prints it, runs a self-test of the angle filter against synthetic input, and exits without
+> opening a window or capturing anything. It is a development aid, reachable only from a terminal,
+> and it reads nothing the app does not already read while running.
 >
 > On a Mac with no lid angle sensor, or with the lid shut and an external display, Tilt does
 > nothing at all, and its menu says which of the two it is: "No lid angle sensor on this Mac" or
@@ -187,7 +198,7 @@ line before trusting the table.
 | clause | verdict | what decides it |
 | --- | --- | --- |
 | 2.1 App Completeness | met | the policy's contact address is filled in and it is served at https://caffebara.github.io/tilt-privacy/, verified HTTP 200 on 2026-09-16 |
-| 2.3.1 hidden features | **question** | `main.swift` ships a `--check` mode in the submitted binary. Undocumented to the user, which is what the clause names. Describe it in Notes for Review, or gate it |
+| 2.3.1 hidden features | met | `main.swift` ships a `--check` mode in the submitted binary, undocumented to the user, which is what the clause names. The review notes above now describe it, which is the cheaper of the two answers: gating it would remove the one command that proves the sensor decode on a machine this one cannot reach |
 | 2.4.5(i) sandbox | met | `Resources/Tilt.entitlements` carries `com.apple.security.app-sandbox` |
 | 2.4.5(ii) Xcode packaging, self-contained | met | `Tilt.xcodeproj` is the submission path, per 003. The bundle is seven files, no helper, nothing in a shared location. `build.sh` is the local loop and is not a submission path |
 | 2.4.5(iii) launch at login | met | registration happens only inside the switch handler, and the default is not registered, so turning it on is the consent. **The clause did not apply before `8639f6a`**: adding the feature opened it |
@@ -227,8 +238,8 @@ answer and the indicators are corroboration.
 The answer here is structural. **Tilt's output is the capture.** There is no state in which it is
 recording and the user cannot see it, because what it records is drawn full screen in front of them
 for as long as it runs, and it stops the moment the overlay does. An indicator would be a smaller,
-later copy of the thing already filling the display. That argument belongs in the review notes,
-because it is invisible from the clause.
+later copy of the thing already filling the display. It is invisible from the clause, so it is
+written into the review notes above rather than left to be inferred.
 
 ### The two that were not met, and what closed them
 
