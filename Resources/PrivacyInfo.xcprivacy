@@ -12,7 +12,8 @@
 	<array/>
 
 	<!-- The one required-reason API this app touches. CA92.1 is "access info from
-	     the same app", which is what the five settings in the menu are. -->
+	     the same app", which is what all six keys are: the five settings in the
+	     menu, plus a flag recording that the dismiss hint has been shown once. -->
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<dict>

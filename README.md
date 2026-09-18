@@ -42,10 +42,13 @@ launchers with the same name, icon and bundle id.
 ## Controls
 
 Everything lives in the menu bar: an on/off switch, the angle the effect engages below, how far you
-sit from the screen, and how strong the glass treatment is.
+sit from the screen, how strong the glass treatment is, whether the angle shows beside the menu bar
+icon, and whether Tilt opens at login.
 
-While the overlay is up, escape dismisses it and so does a click. Either way it stays down until the
-lid is opened back past the threshold.
+While the overlay is up, escape dismisses it. A click does not, and used to: dismissing on a click
+fired while the lid was still moving, so a hand resting on the trackpad dropped the effect halfway
+down. Once dismissed it stays down until the lid is opened back past the threshold, and the menu
+says so while it is.
 
 ## How it works
 
