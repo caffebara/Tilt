@@ -132,20 +132,29 @@ holds, so there is no point filling in a listing under a name that turns out to 
    without a second machine. Decision 005 removed the demo, so a screenshot is what a reviewer sees
    instead of the effect.
 
-   **A tilted MacBook is the obvious illustration and it is not allowed.** Apple's Marketing
-   Resources and Identity Guidelines, read 2026-09-17: product images are to be used "as is and
-   without modification", where modifications expressly include "cropping, **tilting**, or
-   obstructing any part of the images", and Unauthorized Uses opens with "Rendering in 3D or
-   creating any simulation of an Apple product". Both routes to showing a half-closed laptop are
-   named. The word "screenshot" does not appear anywhere in that document, which calls itself rules
-   for marketing materials, so whether it reaches a product page is not settled by it; but review
-   guideline 2.3.9 makes the rights to everything in a screenshot the developer's problem, and
-   there is no reason to put an expressly forbidden edit on the listing. A photograph of one's own
-   machine is neither a modified product image nor a 3D render, and is a different question this
-   file has not answered.
+   **Apple's own product images may not be tilted. A generic device drawn from scratch may.** Both
+   halves are in the Marketing Resources and Identity Guidelines, read 2026-09-18. Product images
+   are to be used "as is and without modification", where modifications expressly include
+   "cropping, **tilting**, or obstructing any part of the images", and Unauthorized Uses forbids
+   "Rendering in 3D or creating any simulation of an Apple product", "Illustrations that depict an
+   Apple product", and "Graphics, illustrations, or logotypes to represent an Apple product". Then
+   the escape hatch, in the same list: "If your marketing contains illustrations of **generic
+   devices**, ensure that these devices do not include details that are unique to Apple products,
+   such as the iPhone Home button, sensor housing, Ring/Silent switch, or volume controls."
 
-   So the constraint is the hard one for this app: **the angle has to be conveyed without drawing
-   the hinge.** That is a design problem rather than a technical one, and it has no answer here.
+   So the sanctioned route is the one every App Store listing already uses: a plain rounded
+   rectangle with no Apple mark, no notch, and nothing identifying. Apple's bezel assets are the
+   thing that must stay untouched, and drawing your own is not touching them.
+
+   The word "screenshot" appears nowhere in that document, which calls itself rules for marketing
+   materials, so whether it governs a product page at all is not settled by it. Review guideline
+   2.3.9 makes the rights to everything in a screenshot the developer's problem either way.
+
+   **And tilting the frame is probably the wrong picture anyway.** The illusion is that the screen
+   stays where it is while the desktop leans, so what a user actually sees is a square-on screen
+   with a tilted desktop inside it. A leaning frame says the laptop moved and the picture followed,
+   which is the opposite. A square-on frame holding a tilted desktop is the honest image, and the
+   caption is where the lid comes in. What a still cannot show is the cause, not the effect.
 
    Whether a preview video is even available for a macOS app is **unverified**. Three Mac App Store
    product pages were fetched on 2026-09-17 and carried no video markup at all, which does not
