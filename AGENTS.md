@@ -53,6 +53,19 @@ submission. This one has cost nothing yet, unlike the rest of this section; it i
 price of springing it is paid by users of a version that can no longer be changed. A domain of one's
 own would end it, and was judged not worth buying.
 
+**An Xcode build registers its product with Launch Services.** `xcodebuild` runs
+`lsregister -f -R -trusted` on the built `.app`, so every Release build puts another Tilt in
+Spotlight and Open With under the same name, icon and bundle id as the installed one. That is the
+mechanism behind the duplicate the test build hit, and it is not confined to a bundle built beside
+the real app: nine had accumulated by 2026-09-22, four of them from that day. Deleting the build
+directory does not remove the record, measured on two that pointed at nothing. Unregister first:
+
+```sh
+L=/System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister
+"$L" -u <path-to-Tilt.app>          # before deleting the directory
+"$L" -dump | grep -i 'path:.*Tilt\.app'   # what it still knows
+```
+
 **`com.apple.security.device.usb` is what reads the sensor**, not a USB device. Measured against a
 bundle id with no permission grants: sandbox alone fails `0xE00002CD`, sandbox with that
 entitlement succeeds. Removing it looks harmless and silently kills the app.
