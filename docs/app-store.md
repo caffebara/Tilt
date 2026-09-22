@@ -211,8 +211,31 @@ holds, so there is no point filling in a listing under a name that turns out to 
    show is the cause, and a recording of the lid coming over is the cause.
 
    The cost is the frame. 1920x1080 is 16:9, this screen is not, and the screenshots are 16:10, so
-   the two assets crop differently from the same capture. A framing decision for the day, not a
-   blocker.
+   the two assets crop differently from the same capture.
+
+   **Both captures are taken blind**, because the effect exists only while the lid is over. So the
+   transforms are settled here rather than on the day, measured 2026-09-22 against a synthetic
+   3024x1964 source, which is what this machine's display reports. Raise **Engage below** before
+   shooting so a shallow fold engages, and put it back afterwards: at 120 the effect engages at an
+   ordinary working angle. Run the effect once before the first take, because the "esc to dismiss"
+   caption is shown on the first engage of the app's life and would otherwise land in the shot.
+
+   ```sh
+   # stills: delay, then fold the lid. The terminal needs screen recording too.
+   screencapture -T 10 -x ~/Desktop/tilt-raw.png
+   sips -c 1890 3024 tilt-raw.png   # 3024x1964 -> 16:10, 74px of height goes
+   sips -z 1800 2880 tilt-raw.png   # -> 2880x1800, one of the four accepted sizes
+
+   # preview: 20 seconds of video, fold and open again inside it
+   sleep 5; screencapture -v -V 20 -x ~/Desktop/tilt-raw.mov
+   ffmpeg -i tilt-raw.mov -vf "crop=3024:1701:0:0,scale=1920:1080" -pix_fmt yuv420p preview.mov
+   ```
+
+   **The crop is anchored to the top on purpose.** 16:9 costs 263 rows of a 1964-row screen, and
+   the edge that leans away as the lid comes over is the top one, which is the whole picture. If
+   that loss turns out to hurt, the alternative keeps the screen whole and pays in pillarbox bars:
+   `scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2`.
+   Whether App Store Connect objects to those bars is unverified.
 
 7. ~~A support URL, and there is no page to point it at~~ **Written and served, 2026-09-22, at
    <https://caffebara.github.io/tilt-privacy/support.html>.** That is the string the Support URL
