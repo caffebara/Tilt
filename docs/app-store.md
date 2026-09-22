@@ -249,6 +249,27 @@ holds, so there is no point filling in a listing under a name that turns out to 
    tree. Tilt renders whatever is on screen, so the screenshot is a photograph of the machine's
    actual desktop, and staging one is part of taking the shot rather than a nicety.
 
+   **2.3.9 puts every pixel of it on the developer**, in one sentence: "You are responsible for
+   securing the rights to use all materials in your app icons, screenshots, and previews, and you
+   should display fictional account information instead of data from a real person." Read
+   2026-09-22. For an app whose output *is* the desktop that is a heavier clause than it is for
+   most, because the windows are not chrome around the product, they are the product.
+
+   **Apple's own apps are not the safe choice they look like.** 5.2.1 forbids protected
+   third-party material without permission, and 5.2.5 is a list of Apple's own material carrying
+   conditions: iTunes and Apple Music previews, Weather data attribution, Activity rings. A Maps
+   window brings map data terms and a Photos window brings whoever owns the photographs. What is
+   unavoidable in any Mac screenshot is the system chrome, and that is not the question here: a
+   featured application window is a choice, and the cheapest defensible one is content the
+   developer made.
+
+   So: a wallpaper of one's own rather than a macOS default, since the backdrop is half of this
+   picture rather than incidental; Tilt's own menu open, which is both owned and the product; and
+   one or two windows holding text or an image made for the shot. No browser, since a page is
+   someone's content under someone's trademark. The thorough version of the same idea is a fresh
+   macOS user account, which starts with an empty Desktop and no personal file to leak; it costs
+   granting screen recording once more in that account.
+
 7. ~~A support URL, and there is no page to point it at~~ **Written and served, 2026-09-22, at
    <https://caffebara.github.io/tilt-privacy/support.html>.** That is the string the Support URL
    field takes. App Store Connect marks Support URL required on every version, and says what it
