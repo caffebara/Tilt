@@ -223,19 +223,31 @@ holds, so there is no point filling in a listing under a name that turns out to 
    ```sh
    # stills: delay, then fold the lid. The terminal needs screen recording too.
    screencapture -T 10 -x ~/Desktop/tilt-raw.png
-   sips -c 1890 3024 tilt-raw.png   # 3024x1964 -> 16:10, 74px of height goes
-   sips -z 1800 2880 tilt-raw.png   # -> 2880x1800, one of the four accepted sizes
+   ffmpeg -i tilt-raw.png -vf "crop=iw:iw/1.6,scale=2880:1800" shot.png
 
    # preview: 20 seconds of video, fold and open again inside it
    sleep 5; screencapture -v -V 20 -x ~/Desktop/tilt-raw.mov
-   ffmpeg -i tilt-raw.mov -vf "crop=3024:1701:0:0,scale=1920:1080" -pix_fmt yuv420p preview.mov
+   ffmpeg -i tilt-raw.mov -vf "crop=iw:iw*9/16:0:0,scale=1920:1080" -pix_fmt yuv420p preview.mov
    ```
 
-   **The crop is anchored to the top on purpose.** 16:9 costs 263 rows of a 1964-row screen, and
-   the edge that leans away as the lid comes over is the top one, which is the whole picture. If
-   that loss turns out to hurt, the alternative keeps the screen whole and pays in pillarbox bars:
+   **Both crops are written in `iw` because the pixel counts were wrong.** This section first
+   hardcoded 3024x1964, which is what `system_profiler SPDisplaysDataType` reports here. A real
+   `screencapture` on 2026-09-22 came back **3600x2338**: the display runs a scaled mode, so the
+   backing store is not the panel. The aspect is the same 1.54 either way and the pixels are not,
+   which is exactly the shape that survives review and fails on the day. Both forms above were run
+   against that real capture and land on 2880x1800 and 1920x1080.
+
+   **The preview's crop is anchored to the top on purpose.** 16:9 costs about an eighth of the
+   height, and the edge that leans away as the lid comes over is the top one, which is the whole
+   picture. If that loss turns out to hurt, the alternative keeps the screen whole and pays in
+   pillarbox bars:
    `scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2`.
    Whether App Store Connect objects to those bars is unverified.
+
+   **And the desktop in the frame is the product shot.** The first real capture held a terminal
+   with this conversation in it, a project sidebar naming four unrelated repositories, and a file
+   tree. Tilt renders whatever is on screen, so the screenshot is a photograph of the machine's
+   actual desktop, and staging one is part of taking the shot rather than a nicety.
 
 7. ~~A support URL, and there is no page to point it at~~ **Written and served, 2026-09-22, at
    <https://caffebara.github.io/tilt-privacy/support.html>.** That is the string the Support URL
