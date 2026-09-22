@@ -93,18 +93,47 @@ holds, so there is no point filling in a listing under a name that turns out to 
    That is a good signal and not a guarantee. The search API lists apps currently on sale, and a
    name reserved in App Store Connect by somebody who never shipped is invisible to it. Only
    entering the name in App Store Connect settles it, which is why this is still step 1.
+
+   Re-checked 2026-09-22, same two storefronts and the same query: still no app called exactly
+   "Tilt", and the near misses are the same four. A week of nothing moving is not the name being
+   held.
 2. ~~`PrivacyInfo.xcprivacy`~~ **Done.** `Resources/PrivacyInfo.xcprivacy` declares no tracking, no
-   collected data, and the one required-reason API this app touches: `UserDefaults`, reason CA92.1
-   (ITMS-91053). It is wired into **both** build paths, the `PBXResourcesBuildPhase` in
-   `Tilt.xcodeproj` and a `cp` in `build.sh`, because one path only is exactly the bug 003 names.
+   collected data, and the one required-reason API this app touches: `UserDefaults`, reason CA92.1.
+   It is wired into **both** build paths, the `PBXResourcesBuildPhase` in `Tilt.xcodeproj` and a
+   `cp` in `build.sh`, because one path only is exactly the bug 003 names.
    Verified by building both: the file lands in both bundles and the two copies are identical.
 
-   The one thing left open is `CACurrentMediaTime()` in `main.swift`, grep for it, the only other
-   required-reason candidate in the code. It
-   schedules a `CAAnimation.beginTime` rather than
-   reading boot time, and nothing else in the file touches file timestamps, disk space or the
-   active keyboard. Check it against Apple's current required-reason list when the account exists,
-   since that list is versioned and is not readable from here.
+   ~~The one thing left open is `CACurrentMediaTime()`~~ **Settled, 2026-09-22, and it needed no
+   account.** The required-reason list is public documentation. The sentence that stood here, to
+   check it against that list once the account exists because the list is not readable from here,
+   was wrong about where the answer lived rather than about the question.
+
+   Apple's own page splits the manifest in two. The collected data types are required "for your app
+   or third-party SDK on all platforms"; the required reasons APIs are required "for your app or
+   third-party SDK on iOS, iPadOS, tvOS, visionOS, and watchOS". macOS is in the first list and
+   absent from the second, and the required-reason article repeats it in its own words: "Describe
+   the reasons your app or third-party SDK on iOS, iPadOS, tvOS, visionOS, or watchOS uses these
+   APIs." Both read 2026-09-22. So the required-reason half of this file does not apply to a Mac
+   App Store submission at all.
+
+   It would not catch `CACurrentMediaTime()` if it did. The system boot time category names two
+   APIs, `systemUptime` and `mach_absolute_time()`, and `main.swift` calls neither: grep it for
+   both, and for `ProcessInfo`, which is what `systemUptime` hangs off. The other four categories
+   are file timestamps, disk space, the active keyboard and user defaults, and the file touches
+   none of the first three.
+
+   And the binary does not import `mach_absolute_time` at all:
+
+   ```sh
+   nm -u Tilt.app/Contents/MacOS/Tilt | grep -iE 'mach_absolute|CACurrentMediaTime'
+   # _CACurrentMediaTime, and nothing else
+   ```
+
+   `CACurrentMediaTime` is what the app calls; `mach_absolute_time` is what CoreAnimation calls on
+   the other side of it, inside a system framework rather than in this bundle.
+
+   The file stays as it is. The collected-data half is "all platforms", which is this app, and the
+   `UserDefaults` declaration is surplus on macOS rather than wrong.
 3. ~~Verify the rendering change on hardware~~ **Done, 2026-09-15.** Seen on a real lid, and it
    cost a commit: the surround darkened as the lid came over while the windows floating on it went
    pale. `gloss` was white through source-atop, which lifts blacks more than it drops whites, so
@@ -137,6 +166,12 @@ holds, so there is no point filling in a listing under a name that turns out to 
 6. Screenshots, and the App Privacy questionnaire, whose answer is that no data is collected.
    Answer it as "Data Not Collected"; nothing in the app contradicts that.
 
+   **The sizes are fixed, and none of them is this screen.** One to ten images, `.png`, `.jpg` or
+   `.jpeg`, at 1280x800, 1440x900, 2560x1600 or 2880x1800, all 16:10, required for Mac apps. Read
+   off the screenshot specifications on 2026-09-22. This machine's display is 3024x1964, which is
+   neither 16:10 nor 16:9, so every asset here is a scale or a crop rather than a raw
+   `screencapture` output.
+
    Screenshots are the awkward one, and worth thinking about before the day of. The effect only
    exists while the lid is partly closed, which is exactly when nobody is looking at the screen.
    `screencapture -T <seconds>` on a delay, run before folding the lid, is the way to get one
@@ -167,12 +202,68 @@ holds, so there is no point filling in a listing under a name that turns out to 
    which is the opposite. A square-on frame holding a tilted desktop is the honest image, and the
    caption is where the lid comes in. What a still cannot show is the cause, not the effect.
 
-   Whether a preview video is even available for a macOS app is **unverified**. Three Mac App Store
-   product pages were fetched on 2026-09-17 and carried no video markup at all, which does not
-   separate "these apps have none" from "the page renders it in JavaScript". The upload screen in
-   App Store Connect answers it in a second and needs the account. Plan the stills to carry the
-   listing on their own; a video, if the field exists, is then a bonus rather than the thing the
-   explanation rests on.
+   ~~Whether a preview video is even available for a macOS app is unverified~~ **It is available,
+   and it is the lead asset rather than a bonus.** Read off the app preview specifications on
+   2026-09-22: Mac takes 1920x1080, landscape only, 15 to 30 seconds, up to three per
+   localisation. The paragraph that stood here fetched three product pages, found no video markup,
+   could not tell "no video" from "rendered in JavaScript", and concluded the answer needed the
+   account. It needed the help page. The plan it recommended is now backwards: what a still cannot
+   show is the cause, and a recording of the lid coming over is the cause.
+
+   The cost is the frame. 1920x1080 is 16:9, this screen is not, and the screenshots are 16:10, so
+   the two assets crop differently from the same capture. A framing decision for the day, not a
+   blocker.
+
+7. ~~A support URL, and there is no page to point it at~~ **Written and served, 2026-09-22, at
+   <https://caffebara.github.io/tilt-privacy/support.html>.** That is the string the Support URL
+   field takes. App Store Connect marks Support URL required on every version, and says what it
+   has to carry: "This URL must lead to actual contact information (legal address, email address,
+   telephone number), as may be required by local law, so that users can reach you regarding app
+   issues, general feedback, and feature enhancement requests." Read 2026-09-22.
+
+   **It carries one email and no postal address or telephone number.** Apple conditions those two
+   on local law, the seller of record on the store is Apple rather than the developer, and a
+   private address published to answer a field is a disclosure that cannot be taken back. If a
+   reviewer asks for more, adding it is one line on a page nothing else depends on.
+
+   **It is one more page in `caffebara/tilt-privacy`**, not a repository of its own, because the
+   account and repository names are already load-bearing for the policy URL compiled into every
+   shipped binary, and a second name is a second thing that can break. That buys something back:
+   the two pages are one Jekyll site, so a build broken there takes the policy page with it, and
+   the policy is the one every released copy points at. Nothing stops the same URL going in both
+   fields either, and it is not what happened: the policy answers a different question, and the
+   support page was written for the one the field asks.
+
+   Peer-reviewed before publishing, 2026-09-22, two lenses: Codex on facts against `main.swift`,
+   and a fresh-context reviewer on counter-cases. Eighteen findings: the page is rewritten against
+   fifteen, two are decisions rather than defects, and one is the coupling written above. Two are
+   worth carrying out of the review, because they are true of the app rather than of the draft:
+
+   - **The overlay takes key focus on purpose**, so while it is up the keyboard reaches Tilt and
+     not the app underneath. The first draft had repeated the review notes' "passes every other one
+     straight through", which is true of the event monitor and false of the machine. The review
+     notes are answering "is this a keylogger", and a user reading the same sentence takes it as
+     permission to keep typing over a terminal.
+   - **Granting the permission without letting macOS relaunch leaves the app inert for that whole
+     run**, with a menu that shows neither of the two status strings, so the troubleshooting any
+     support page would offer routes the user to controls that are not on screen. The app's own
+     note already says to let it quit and reopen; the page now says so too.
+
+8. **The fields the listing cannot be submitted without.** Read off the App Store Connect help on
+   2026-09-22, so that the day of the submission is not the first time they are seen. App
+   information: name, bundle id, SKU, primary category, age rating, and the privacy policy URL,
+   "Required for iOS and macOS apps". Per platform version: screenshots, description, keywords,
+   support URL, version number, and a copyright string. App Review Information: a contact name,
+   email, and **telephone number in international format**, the field that "doesn't accept
+   numbers-only entry" and the one item on this list that the repository records nowhere. Optional:
+   promotional text, marketing URL, subtitle, a second category. The sign-in fields do not apply,
+   since Tilt has no account.
+
+   Two of these are already answered by the build rather than by the form.
+   `LSApplicationCategoryType` is `public.app-category.utilities`, so the primary category is
+   chosen, and `NSHumanReadableCopyright` carries the copyright string. **The version is not.** Both
+   build paths say 0.1, `CFBundleShortVersionString` and `MARKETING_VERSION` alike, and whether the
+   first public version goes out as 0.1 or 1.0 is a decision nobody has made.
 
 Two things to check on the exported archive rather than before it:
 
