@@ -257,7 +257,8 @@ holds, so there is no point filling in a listing under a name that turns out to 
    email, and **telephone number in international format**, the field that "doesn't accept
    numbers-only entry" and the one item on this list that the repository records nowhere. Optional:
    promotional text, marketing URL, subtitle, a second category. The sign-in fields do not apply,
-   since Tilt has no account.
+   since Tilt has no account. The text for all of them is written and measured against these
+   limits in `docs/listing.md`.
 
    Two of these are already answered by the build rather than by the form.
    `LSApplicationCategoryType` is `public.app-category.utilities`, so the primary category is
