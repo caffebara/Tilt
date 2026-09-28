@@ -47,6 +47,11 @@ the screen recording permission.
    Price tiers are Apple's own list, so whether a thousand won is one of them is a question for
    that screen rather than for this file. A price can be changed later, and so can free to paid.
 
+   **The arithmetic above assumed an empty market and there is no longer one.** Two apps that do
+   what this one does shipped in September, both free, both in the KR storefront: § Known risks
+   has them with dates. 158 sales a year was a number about the fee, not about whether anybody
+   buys a paid copy of something with two free equivalents already on the shelf.
+
    Review is not affected. 4.2 is the clause that decides whether a utility is substantial enough,
    and its text says nothing about price; the only place the guidelines separate paid from free is
    3.1.3(f), about free companions to paid web tools. The risk below is the same either way.
@@ -94,9 +99,10 @@ holds, so there is no point filling in a listing under a name that turns out to 
    name reserved in App Store Connect by somebody who never shipped is invisible to it. Only
    entering the name in App Store Connect settles it, which is why this is still step 1.
 
-   Re-checked 2026-09-22, same two storefronts and the same query: still no app called exactly
-   "Tilt", and the near misses are the same four. A week of nothing moving is not the name being
-   held.
+   Re-checked 2026-09-28: still no app called exactly "Tilt" in either storefront. The near misses
+   have moved, though, and one of them now carries the word: "Lid Up: Fold & Tilt Animation",
+   shipped 2026-09-23. The exact name is free and the search results around it are not what they
+   were on the 15th.
 2. ~~`PrivacyInfo.xcprivacy`~~ **Done.** `Resources/PrivacyInfo.xcprivacy` declares no tracking, no
    collected data, and the one required-reason API this app touches: `UserDefaults`, reason CA92.1.
    It is wired into **both** build paths, the `PBXResourcesBuildPhase` in `Tilt.xcodeproj` and a
@@ -417,10 +423,28 @@ that change updates both.
 
 ## Known risks
 
-No lid angle app is on the Mac App Store today, so there is no precedent either way. Two things a
-reviewer may ask about: a USB entitlement on an app that touches no removable device, and a sensor
-whose HID usage Apple has not documented, although it is read through public IOKit calls rather
-than a private API.
+~~No lid angle app is on the Mac App Store today, so there is no precedent either way.~~ **Four
+are, and two of them do this.** Measured through the iTunes Search API on 2026-09-28, US and KR:
+
+| app | seller | shipped | price | what it reads the hinge for |
+| --- | --- | --- | --- | --- |
+| Lidio | Codesimply | 2026-04-16 | $1.99 | a sound on open and on close |
+| hynthesizer | YEJOON SHIN | 2026-04-28 | free | the angle as a musical controller |
+| RepLid Duo | Idrees Khan | 2026-09-17 | free | folds the desktop as the lid closes |
+| Lid Up: Fold & Tilt Animation | Hemal Modi | 2026-09-23 | free | "the picture leans back … seen from where you sit" |
+
+**That settles the review question rather than leaving it open.** A sandboxed app reading the
+built-in hinge sensor ships: the USB entitlement on something that touches no removable device, the
+HID usage Apple has not documented, 4.2 on a utility this small, and a reviewer whose Mac may have
+no lid have all been passed, twice in the eleven days before this was measured. The two questions
+below are still the ones a reviewer may ask; what has changed is that somebody else has already
+answered them and been let through.
+
+**What it opens instead is 4.3 and the premise.** Tilt is not first and is no longer novel. Its own
+history is the evidence of independent work if that is ever put to it: 57 commits from 2026-09-11,
+and the first of them renders the desktop in perspective from the lid angle, six days before the
+earlier of the two shipped. The harder half is not the review. Both direct ones are free, in both
+storefronts, and step 7's break-even arithmetic was written against a market with nothing in it.
 
 A third used to be here, an input monitoring prompt, and it is gone rather than mitigated.
 `d6d88ee` isolated it by building three throwaway apps instead of reasoning about it, after four
