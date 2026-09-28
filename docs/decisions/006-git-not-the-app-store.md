@@ -53,10 +53,16 @@ silently kills the app. `PrivacyInfo.xcprivacy` stays, harmless and true. The pr
 policy URL stays compiled in and its repository stays the only copy, because the policy
 is still the honest answer to what the capture does and 006 does not make it false.
 
-**`docs/app-store.md` is kept as a record rather than deleted.** It holds what the
-sandbox needed and why, the two IOKit error codes and what reconciling them would
-cost, the four apps already on the store, and the capture transforms, which a
-screenshot for a README needs as much as one for a listing did.
+~~`docs/app-store.md` is kept as a record rather than deleted.~~ **Deleted on 2026-09-29,
+with `docs/listing.md`.** Four hundred lines of process for a store this app is not on is noise in
+a public repository, and the reader it was written for no longer exists. What was load-bearing was
+already held elsewhere and stays: the sandbox measurement is in 004 and in `AGENTS.md`, and the
+architecture check's commands moved into `AGENTS.md` rather than being pointed at. What went with
+it was store process, the review-clause table, and the listing copy.
+
+**005 still points at that file and is left pointing.** A decision records what was true when it
+was made, and repairing its prose to match a later one would make the record agree with itself
+rather than with what happened.
 
 **What this accepts is discovery.** Nobody finds this in a store search. The two apps
 that do the same thing are free, listed, and the ones people will find, and this one

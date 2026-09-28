@@ -77,9 +77,9 @@ Developer ID certificate and so the same paid membership a store listing would h
 `build.sh`'s own certificate is what keeps the screen recording permission across rebuilds, which
 a notarized update would not.
 
-[docs/app-store.md](docs/app-store.md) is kept as the record of the path not taken: what the
-sandbox needed and why, every review clause this app would have pulled in, and the four lid angle
-apps that were already on the store when the decision was made.
+The app is still built and signed as though it were going to the store, because that is what
+makes the sensor answer: `com.apple.security.device.usb` inside the sandbox. `AGENTS.md` says what
+removing it costs.
 
 ## Checks
 

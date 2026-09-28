@@ -12,10 +12,11 @@ from the code; treat it as given and verify behaviour on hardware.
 `./build.sh` writes `Tilt.app` beside itself. Leave it there. Song installs it, so do not copy it
 to `/Applications`, and do not launch it as a side effect of a build.
 
-`build.sh` is the local loop and `Tilt.xcodeproj` is the submission path. They are not
-alternatives: `build.sh` signs with a certificate it creates itself, and that is the only reason
+`build.sh` is the loop and the distribution both, per 006: there is no download, so building is
+how anyone runs this. It signs with a certificate it creates itself, and that is the only reason
 the screen recording permission survives a rebuild, since an ad-hoc signature pins the grant to
-the binary's hash. Both read one `Resources/Info.plist`, one `Resources/Tilt.entitlements` and one
+the binary's hash. `Tilt.xcodeproj` was the submission path and now builds the same app a second
+way. Both read one `Resources/Info.plist`, one `Resources/Tilt.entitlements` and one
 `makeicns.sh`. Change a bundle setting in those, never in one build path.
 
 ## Traps that have already cost a day
@@ -40,18 +41,24 @@ appeared in launchers with the same name, icon and bundle id.
 
 **The two build paths differ on architecture, and that is not a bug.** `build.sh` builds arm64 and
 the Xcode archive builds universal, because the project sets no `ARCHS`. Both slices read the
-sensor and pass `--check`, measured through `arch -x86_64`; `docs/app-store.md` has the commands.
+sensor and pass `--check`, run on the Xcode product rather than on `Tilt.app`, which is arm64 by
+design:
+
+```sh
+arch -arm64  "$DERIVED/Build/Products/Release/Tilt.app/Contents/MacOS/Tilt" --check
+arch -x86_64 "$DERIVED/Build/Products/Release/Tilt.app/Contents/MacOS/Tilt" --check
+```
+
 It reads like a slice nobody has run, and pinning the project to arm64 to make the paths agree cuts
 a platform for nothing.
 
 **The privacy policy URL is compiled in, so the GitHub account name is load-bearing.**
-`main.swift` ships `https://caffebara.github.io/tilt-privacy/` as a string in the binary, and
-5.1.1(i) requires the app to carry that link. Renaming the account, renaming or deleting
-`caffebara/tilt-privacy`, or switching its Pages off points every already-released copy at a 404,
-and the only repair is a new
-submission. This one has cost nothing yet, unlike the rest of this section; it is here because the
-price of springing it is paid by users of a version that can no longer be changed. A domain of one's
-own would end it, and was judged not worth buying.
+`main.swift` ships `https://caffebara.github.io/tilt-privacy/` as a string in the binary, and the
+menu opens it. Renaming the account, renaming or deleting `caffebara/tilt-privacy`, or switching
+its Pages off points every copy already built at a 404, and that repository is the only place the
+policy exists. This one has cost nothing yet, unlike the rest of this section; it is here because
+the price of springing it is paid by whoever is running a build that can no longer be changed. A
+domain of one's own would end it, and was judged not worth buying.
 
 **An Xcode build registers its product with Launch Services.** `xcodebuild` runs
 `lsregister -f -R -trusted` on the built `.app`, so every Release build puts another Tilt in
