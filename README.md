@@ -69,11 +69,17 @@ Rendering is driven by a display link rather than by captured frames, because Sc
 delivers a frame when the screen changes and a still desktop would freeze the motion. A One Euro
 filter fills in between the sensor's whole-degree readings.
 
-## Mac App Store
+## Distribution
 
-The app is built and signed for it, and what is left needs an Apple Developer account.
-[docs/app-store.md](docs/app-store.md) has the steps, what the sandbox needed and why, the review
-notes to paste, and the known risks.
+Build it. There is no download, and that is a decision rather than a gap:
+[006](docs/decisions/006-git-not-the-app-store.md) has why. A signed, notarized download needs a
+Developer ID certificate and so the same paid membership a store listing would have, and
+`build.sh`'s own certificate is what keeps the screen recording permission across rebuilds, which
+a notarized update would not.
+
+[docs/app-store.md](docs/app-store.md) is kept as the record of the path not taken: what the
+sandbox needed and why, every review clause this app would have pulled in, and the four lid angle
+apps that were already on the store when the decision was made.
 
 ## Checks
 
@@ -83,6 +89,11 @@ notes to paste, and the known risks.
 
 Reads the sensor and asserts the smoothing filter still hides the quantisation without lagging a
 fast close.
+
+## Licence
+
+MIT, in [LICENSE](LICENSE). The menu bar glyph is somebody else's and carries its own notice; see
+below.
 
 ## Credits
 
