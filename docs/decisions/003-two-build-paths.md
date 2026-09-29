@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by 007
 date: 2026-09-11
 ---
 

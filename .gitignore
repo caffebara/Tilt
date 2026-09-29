@@ -7,11 +7,5 @@ AppIcon.icns
 
 .DS_Store
 
-# Xcode
-Tilt.xcodeproj/xcuserdata/
-Tilt.xcodeproj/project.xcworkspace/
-DerivedData/
-*.xcarchive
-
 # Claude Code, per-machine
 .claude/settings.local.json
