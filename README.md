@@ -6,6 +6,8 @@ Close the lid past a threshold and the windows lift off the desktop: the wallpap
 it is, the windows tilt away from it, and the picture stays put in space while the panel turns in
 front of it. Open the lid back past the threshold and everything goes away.
 
+<img src="docs/demo.gif" alt="A MacBook lid closing: as it comes down, the Notes window on screen leans back while the wallpaper around it stays put" width="480">
+
 | Lid open | Lid closing |
 | --- | --- |
 | ![The desktop with the lid open, a Notes window lying flat](docs/before.png) | ![The same desktop with the lid closing: the Notes window leans away while the wallpaper stays flat](docs/after.png) |

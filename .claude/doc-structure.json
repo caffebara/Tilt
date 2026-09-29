@@ -5,7 +5,8 @@
     "PRIVACY.md": "what the app reads, stores and sends, for the person running it",
     "CLAUDE.md": "the Claude entry point: imports AGENTS.md, plus what is Claude-only",
     "docs/*.png": "images the README shows",
-    "THIRD-PARTY-NOTICES.md": "licence notices for material shipped inside the app bundle"
+    "THIRD-PARTY-NOTICES.md": "licence notices for material shipped inside the app bundle",
+    "docs/*.gif": "the README's recording of the effect"
   },
   "informative": {},
   "requirements": {}
