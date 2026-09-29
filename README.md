@@ -21,36 +21,46 @@ in front of it, and an external display does not turn.
 
 ## Install
 
-Building is how you get it. There is no download, and that is a decision rather than a gap: a
-download signed for other people's Macs needs a paid Apple Developer account, and the source is
-free. You also need Xcode's command line tools, for `swiftc`.
+Download it, or build it from source. Either way it is the same app.
+
+### Download
+
+1. Download `Tilt-1.0.zip` from [Releases](https://github.com/caffebara/Tilt/releases/latest),
+   open it, and move `Tilt.app` into `/Applications`.
+2. Open it. The first time, macOS refuses and says it cannot check the app for malware. That is
+   because it is not signed with a paid Apple Developer ID, not because of anything it does. Open
+   System Settings, then Privacy & Security, scroll to the line about Tilt and choose **Open
+   Anyway**. macOS asks this once.
+
+Each release lists the zip's SHA-256, so you can check the file you got is the one published:
+`shasum -a 256 Tilt-1.0.zip`.
+
+### Build from source
+
+You need Xcode's command line tools, for `swiftc`.
 
 ```sh
 git clone https://github.com/caffebara/Tilt
 cd Tilt
-./build.sh
-```
-
-`Tilt.app` lands beside the script. Open it and nothing appears, because there is no window: Tilt
-is the icon in the menu bar. macOS asks for screen recording the first time, and until that is
-granted the app does nothing, since your desktop is the picture it tilts. Let macOS quit and reopen
-Tilt when it offers, or the permission does not take hold until the next launch.
-
-It runs from wherever you put it. To put it in `/Applications` instead, which is where the "Open
-at login" switch needs it, build with
-
-```sh
 ./build.sh --install
 ```
 
-That quits a running Tilt, replaces `/Applications/Tilt.app` with the new build and opens it. It
-refuses to replace an app of that name that is not Tilt.
+That builds, quits a running Tilt, replaces `/Applications/Tilt.app` with the new build and opens
+it. It refuses to replace an app of that name that is not Tilt. A plain `./build.sh` builds
+`Tilt.app` beside the script and stops there, and it runs from there too.
 
 **Every build asks for screen recording again, once.** `build.sh` signs ad hoc, so it never touches
 your keychain, and macOS ties the permission to that exact build. A rebuild is a new app to it.
 `--install` clears the old permission before it installs, so macOS asks cleanly. A plain
 `./build.sh` does not, so after rebuilding in place run the `tccutil` line below: the old
 permission stays recorded against the old build and does not apply to the new one.
+
+### First launch
+
+Nothing appears, because there is no window: Tilt is the icon in the menu bar. macOS asks for
+screen recording, and until that is granted the app does nothing, since your desktop is the
+picture it tilts. Let macOS quit and reopen Tilt when it offers, or the permission does not take
+hold until the next launch. Keep it in `/Applications` if you want the "Open at login" switch.
 
 ## Uninstall
 
