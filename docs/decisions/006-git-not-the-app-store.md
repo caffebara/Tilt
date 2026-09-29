@@ -65,4 +65,5 @@ reason. The sensor measurement 004 held is in `AGENTS.md`.
 
 **What this accepts is discovery.** Nobody finds this in a store search. The two apps
 that do the same thing are free, listed, and the ones people will find, and this one
-is reachable only by someone who already has the link.
+~~is reachable only by someone who already has the link.~~ **Public on GitHub since 2026-09-29, so
+it can be found by searching there, and nowhere else.**

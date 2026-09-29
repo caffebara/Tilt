@@ -13,6 +13,6 @@
 	<key>LSMinimumSystemVersion</key><string>14.0</string>
 	<key>LSUIElement</key><true/>
 	<key>NSHighResolutionCapable</key><true/>
-	<key>NSHumanReadableCopyright</key><string>Copyright © 2026 Myungkeun Song. All rights reserved.</string>
+	<key>NSHumanReadableCopyright</key><string>Copyright © 2026 Myungkeun Song. MIT licensed.</string>
 </dict>
 </plist>
