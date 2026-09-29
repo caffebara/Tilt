@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="Placeholder for a recording of Tilt">
+  <rect width="800" height="450" rx="16" fill="#1d1f24"/>
+  <g fill="none" stroke="#5a606b" stroke-width="3">
+    <path d="M250 330 L550 330 L590 360 L210 360 Z"/>
+    <path d="M270 320 L300 130 L500 130 L530 320 Z"/>
+  </g>
+  <text x="400" y="400" fill="#9aa1ad" font-family="-apple-system, Helvetica, sans-serif" font-size="20" text-anchor="middle">Recording to come: the desktop holding still as the lid closes</text>
+</svg>

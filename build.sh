@@ -22,14 +22,21 @@ if [ -z "$HASH" ]; then
 	echo "creating code signing identity: $IDENTITY"
 	TMP=$(mktemp -d)
 	trap 'rm -rf "$TMP"' EXIT
-	openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+	# The system's LibreSSL, not whatever is first on PATH. A Homebrew OpenSSL 3
+	# writes a PKCS#12 that `security import` rejects with "MAC verification
+	# failed", measured 2026-09-29.
+	/usr/bin/openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
 		-keyout "$TMP/key.pem" -out "$TMP/cert.pem" \
 		-subj "/CN=$IDENTITY" \
 		-addext "basicConstraints=critical,CA:FALSE" \
 		-addext "keyUsage=critical,digitalSignature" \
 		-addext "extendedKeyUsage=critical,codeSigning" 2>/dev/null
-	openssl pkcs12 -export -out "$TMP/bundle.p12" -inkey "$TMP/key.pem" \
+	/usr/bin/openssl pkcs12 -export -out "$TMP/bundle.p12" -inkey "$TMP/key.pem" \
 		-in "$TMP/cert.pem" -passout pass:tilt -name "$IDENTITY" 2>/dev/null
+	# -A lets codesign use the key on every build without asking. It also lets any
+	# other process running as this user sign with it, and so pass for Tilt to the
+	# screen recording grant. Narrowing it to codesign would not change that, since
+	# any process can run codesign. The README says so.
 	security import "$TMP/bundle.p12" -k "$KEYCHAIN" -P tilt -A >/dev/null
 	HASH=$(identity_hash)
 	[ -n "$HASH" ] || { echo "could not create the signing identity" >&2; exit 1; }
@@ -54,7 +61,6 @@ fi
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
-# Shared with the Xcode project, so both builds get the same icon.
 ./makeicns.sh
 cp AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 # The menu bar glyph. Tabler Icons, MIT licensed: https://tabler.io/icons
@@ -65,9 +71,8 @@ cp MenuIcon.svg "$APP/Contents/Resources/MenuIcon.svg"
 cp THIRD-PARTY-NOTICES.md "$APP/Contents/Resources/THIRD-PARTY-NOTICES.md"
 
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-# The privacy manifest. Shared with the Xcode project for the reason in 003: a
-# bundle input that only one build path copies is a bundle the local loop cannot
-# reproduce.
+# The privacy manifest. Nothing off the store reads it, and 006 keeps it because
+# it is true.
 cp Resources/PrivacyInfo.xcprivacy "$APP/Contents/Resources/PrivacyInfo.xcprivacy"
 
 swiftc -O -target arm64-apple-macos14.0 $EXTRA main.swift -o "$APP/Contents/MacOS/Tilt"

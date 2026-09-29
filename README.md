@@ -6,6 +6,8 @@ Close the lid past a threshold and the windows lift off the desktop: the wallpap
 it is, the windows tilt away from it, and the picture stays put in space while the panel turns in
 front of it. Open the lid back past the threshold and everything goes away.
 
+![Tilt: the windows lean away from the wallpaper as the lid closes](docs/demo.svg)
+
 ## Requirements
 
 - An Apple silicon MacBook with a lid angle sensor
@@ -40,6 +42,25 @@ creates a self-signed code signing identity called "Tilt Local Signing" in your 
 signs with it. An ad-hoc signature would pin the screen recording grant to the binary's hash, so
 every rebuild would ask for the permission again. The certificate pins it to the identity instead,
 and the grant survives.
+
+That has a cost worth knowing. The key is imported so that `codesign` can use it on every build
+without asking, which means any other process running as you can use it too, sign itself as Tilt,
+and inherit Tilt's screen recording grant. Narrowing the key to `codesign` would not help, since
+any process can run `codesign`. If that matters on your machine, delete the certificate when you
+are not building, and remove the grant when you stop using Tilt.
+
+## Uninstall
+
+Delete `Tilt.app`. What it keeps on your Mac, and how to remove each piece, is in
+[PRIVACY.md](PRIVACY.md). Two things `build.sh` leaves behind are not:
+
+```sh
+security delete-identity -c "Tilt Local Signing"   # the signing certificate and its key
+tccutil reset ScreenCapture io.sxong.tilt           # the screen recording grant
+```
+
+Reset the grant whenever you delete the certificate. The next build makes a new certificate, the
+old grant no longer matches it, and capture fails without saying why.
 
 ## Controls
 
@@ -89,8 +110,8 @@ transitions can be driven without a hand on the hinge. The hook is behind a comp
 reach a normal build. It goes to `$TMPDIR` because built beside the real app it turned up in
 launchers with the same name, icon and bundle id.
 
-To use your own icon, drop a 1024x1024 `AppIcon.png` in this directory, delete `AppIcon.icns` and
-build again. Without one, `makeicon.swift` draws a placeholder.
+To use your own icon, replace `AppIcon.png` with a 1024x1024 one, delete `AppIcon.icns` and build
+again. With no `AppIcon.png` at all, `makeicon.swift` draws a placeholder.
 
 The app is sandboxed and carries `com.apple.security.device.usb`, which is what lets it read the
 sensor at all rather than anything to do with USB devices. `AGENTS.md` says what removing it costs,
