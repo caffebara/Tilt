@@ -64,9 +64,21 @@ old grant no longer matches it, and capture fails without saying why.
 
 ## Controls
 
-Everything lives in the menu bar: an on/off switch, the angle the effect engages below, how far you
-sit from the screen, how strong the glass treatment is, whether the angle shows beside the menu bar
-icon, and whether Tilt opens at login.
+Everything lives in the menu bar icon.
+
+<img src="docs/menu.png" alt="The Tilt menu: Enabled, Engage below, You sit about, Glass effect, Show angle in menu bar, Open at login, Quit Tilt" width="304">
+
+- **Enabled** switches the effect on and off.
+- **Engage below** is the lid angle the effect starts under, from 40° to 120° in steps of 5. It
+  goes away again two degrees above it. Under 20° Tilt gets out of the way whatever this says,
+  because a lid that far down is usually on its way to sleep.
+- **You sit about** is your distance from the screen, from 30 to 90 cm. The perspective is drawn
+  for that distance, so this is the one to move if the effect looks too strong or too flat.
+- **Glass effect** is how much the far edge blurs and darkens as it leans away: Off, Subtle,
+  Medium or Strong.
+- **Show angle in menu bar** puts the current lid angle beside the icon, which is the quickest way
+  to see that the sensor is being read.
+- **Open at login** appears only when Tilt runs from an Applications folder.
 
 While the overlay is up, escape dismisses it. A click does not, and used to: dismissing on a click
 fired while the lid was still moving, so a hand resting on the trackpad dropped the effect halfway
