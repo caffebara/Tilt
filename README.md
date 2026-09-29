@@ -63,16 +63,23 @@ not building, and remove the grant when you stop using Tilt.
 
 ## Uninstall
 
-Delete `Tilt.app`. What it keeps on your Mac, and how to remove each piece, is in
-[PRIVACY.md](PRIVACY.md). Two things `build.sh` leaves behind are not:
+Reset the screen recording grant first, while Tilt is still installed. `tccutil` finds the app
+through macOS's record of it, and with the app deleted it fails with "No such bundle identifier".
 
 ```sh
-security delete-identity -c "Tilt Local Signing"   # the signing certificate and its key
 tccutil reset ScreenCapture io.sxong.tilt           # the screen recording grant
 ```
 
-Reset the grant whenever you delete the certificate. It was recorded against the old one, and the
-next build makes a new one, so resetting lets macOS ask again cleanly.
+Then delete `Tilt.app`, and the signing certificate `build.sh` made:
+
+```sh
+security delete-identity -c "Tilt Local Signing"   # the certificate and its key
+```
+
+The settings and the "Open at login" entry are removed as [PRIVACY.md](PRIVACY.md) describes.
+
+Reset the grant whenever you delete the certificate, even if you are rebuilding rather than
+leaving. It was recorded against the old certificate, and the next build makes a new one.
 
 ## Controls
 
