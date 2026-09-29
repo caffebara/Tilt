@@ -46,8 +46,10 @@ and the grant survives.
 That has a cost worth knowing. The key is imported so that `codesign` can use it on every build
 without asking, which means any other process running as you can use it too, sign itself as Tilt,
 and inherit Tilt's screen recording grant. Narrowing the key to `codesign` would not help, since
-any process can run `codesign`. If that matters on your machine, delete the certificate when you
-are not building, and remove the grant when you stop using Tilt.
+any process can run `codesign`. Measured on 2026-09-29: a separate app signed with this
+certificate under Tilt's bundle id read the grant as given, and the same app under another bundle
+id, or signed ad hoc, did not. If that matters on your machine, delete the certificate when you are
+not building, and remove the grant when you stop using Tilt.
 
 ## Uninstall
 
@@ -59,8 +61,8 @@ security delete-identity -c "Tilt Local Signing"   # the signing certificate and
 tccutil reset ScreenCapture io.sxong.tilt           # the screen recording grant
 ```
 
-Reset the grant whenever you delete the certificate. The next build makes a new certificate, the
-old grant no longer matches it, and capture fails without saying why.
+Reset the grant whenever you delete the certificate. It was recorded against the old one, and the
+next build makes a new one, so resetting lets macOS ask again cleanly.
 
 ## Controls
 
@@ -79,6 +81,12 @@ Everything lives in the menu bar icon.
 - **Show angle in menu bar** puts the current lid angle beside the icon, which is the quickest way
   to see that the sensor is being read.
 - **Open at login** appears only when Tilt runs from an Applications folder.
+
+If nothing happens when the lid comes down, open the menu: it says why. Only the screen recording
+note means the permission has not taken hold yet, so quit and reopen Tilt. "No lid angle sensor on
+this Mac" means it cannot run here, and "Waiting for the built-in display" means only an external
+display is in use. "Capture failed" names the cause and offers Try again. A full menu and still
+nothing means Enabled is off, or Engage below is lower than where your lid stops.
 
 While the overlay is up, escape dismisses it. A click does not, and used to: dismissing on a click
 fired while the lid was still moving, so a hand resting on the trackpad dropped the effect halfway

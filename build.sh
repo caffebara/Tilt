@@ -9,6 +9,14 @@
 set -eu
 cd "$(dirname "$0")"
 
+# The swiftc -target below is arm64, and on an Intel Mac it would build an app
+# that cannot launch. hw.optional.arm64 is 1 on Apple silicon even from a shell
+# running under Rosetta, where uname -m says x86_64.
+[ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = 1 ] || {
+	echo "Tilt needs Apple silicon. build.sh targets arm64 (see swiftc -target)." >&2
+	exit 1
+}
+
 IDENTITY="Tilt Local Signing"
 KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
 
