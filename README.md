@@ -6,7 +6,9 @@ Close the lid past a threshold and the windows lift off the desktop: the wallpap
 it is, the windows tilt away from it, and the picture stays put in space while the panel turns in
 front of it. Open the lid back past the threshold and everything goes away.
 
-![Tilt: the windows lean away from the wallpaper as the lid closes](docs/demo.svg)
+| Lid open | Lid closing |
+| --- | --- |
+| ![The desktop with the lid open, a Notes window lying flat](docs/before.png) | ![The same desktop with the lid closing: the Notes window leans away while the wallpaper stays flat](docs/after.png) |
 
 ## Requirements
 
@@ -68,7 +70,7 @@ next build makes a new one, so resetting lets macOS ask again cleanly.
 
 Everything lives in the menu bar icon.
 
-<img src="docs/menu.png" alt="The Tilt menu: Enabled, Engage below, You sit about, Glass effect, Show angle in menu bar, Open at login, Quit Tilt" width="304">
+<img src="docs/menu.png" alt="The Tilt menu open under its menu bar icon, which shows the lid angle: Enabled, Engage below, You sit about, Glass effect, Show angle in menu bar, Open at login, Quit Tilt" width="420">
 
 - **Enabled** switches the effect on and off.
 - **Engage below** is the lid angle the effect starts under, from 40° to 120° in steps of 5. It

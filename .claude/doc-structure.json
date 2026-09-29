@@ -5,7 +5,6 @@
     "PRIVACY.md": "what the app reads, stores and sends, for the person running it",
     "CLAUDE.md": "the Claude entry point: imports AGENTS.md, plus what is Claude-only",
     "docs/*.md": "a procedure somebody looks up when they are doing that task",
-    "docs/*.svg": "images the README shows",
     "docs/*.png": "images the README shows",
     "docs/decisions/*.md": "one decision per file, superseded rather than edited",
     "THIRD-PARTY-NOTICES.md": "licence notices for material shipped inside the app bundle"
