@@ -95,3 +95,32 @@ case "$APP" in
 	*)  echo "built $(pwd)/$APP" ;;
 esac
 codesign -d -r- "$APP" 2>&1 | grep designated
+
+# --install puts the build in /Applications and opens it, which is where the
+# Open at login switch needs it. Only when asked: a plain build touches nothing
+# outside this directory.
+if [ "${1:-}" = "--install" ]; then
+	DEST=/Applications/Tilt.app
+	# Replace Tilt, and nothing else that happens to have the name.
+	if [ -e "$DEST" ] && [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
+		"$DEST/Contents/Info.plist" 2>/dev/null)" != io.sxong.tilt ]; then
+		echo "$DEST is not Tilt, so it is left alone" >&2
+		exit 1
+	fi
+	# Quit a running copy first: a bundle replaced under it keeps the old code
+	# running. Asked only when one is running, because osascript fails on an app
+	# id macOS has never seen, which is every Mac this has not been installed on.
+	if pgrep -f "$DEST/Contents/MacOS/Tilt" >/dev/null; then
+		osascript -e 'tell application id "io.sxong.tilt" to quit' >/dev/null
+	fi
+	n=0
+	while pgrep -f "$DEST/Contents/MacOS/Tilt" >/dev/null; do
+		n=$((n + 1))
+		[ "$n" -le 50 ] || { echo "Tilt did not quit; quit it and run again" >&2; exit 1; }
+		sleep 0.2
+	done
+	rm -rf "$DEST"
+	ditto "$APP" "$DEST"
+	open "$DEST"
+	echo "installed $DEST"
+fi

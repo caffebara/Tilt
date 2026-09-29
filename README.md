@@ -36,8 +36,16 @@ is the icon in the menu bar. macOS asks for screen recording the first time, and
 granted the app does nothing, since your desktop is the picture it tilts. Let macOS quit and reopen
 Tilt when it offers, or the permission does not take hold until the next launch.
 
-It runs from wherever you put it. Move it into `/Applications` if you want the "Open at login"
-switch, which is the one setting that checks where the app is running from.
+It runs from wherever you put it. To put it in `/Applications` instead, which is where the "Open
+at login" switch needs it, build with
+
+```sh
+./build.sh --install
+```
+
+That quits a running Tilt, replaces `/Applications/Tilt.app` with the new build and opens it. It
+refuses to replace an app of that name that is not Tilt. Rebuilding this way keeps the screen
+recording grant, for the same reason the next paragraph gives.
 
 **The first run makes a certificate, and that is the point rather than a detail.** `build.sh`
 creates a self-signed code signing identity called "Tilt Local Signing" in your login keychain and
