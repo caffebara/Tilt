@@ -26,11 +26,20 @@ Download it, or build it from source. Either way it is the same app.
 ### Download
 
 1. Download `Tilt-1.0.zip` from [Releases](https://github.com/caffebara/Tilt/releases/latest),
-   open it, and move `Tilt.app` into `/Applications`.
-2. Open it. The first time, macOS refuses and says it cannot check the app for malware. That is
-   because it is not signed with a paid Apple Developer ID, not because of anything it does. Open
-   System Settings, then Privacy & Security, scroll to the line about Tilt and choose **Open
-   Anyway**. macOS asks this once.
+   open it, and drag `Tilt.app` into Applications in Finder before opening it. Opened where it
+   was unzipped, macOS runs it from a temporary copy, and the "Open at login" switch does not
+   appear.
+2. Open it. The first time, macOS stops it with this:
+
+   > **"Tilt.app" Not Opened**
+   >
+   > Apple could not verify "Tilt.app" is free of malware that may harm your Mac or compromise
+   > your privacy.
+
+   Choose **Done**, not Move to Trash, which deletes the app. macOS says this about any app not
+   signed with a paid Apple Developer ID, whatever the app does, and the source it was built from
+   is this repository. Then open System Settings, then Privacy & Security, scroll to the line
+   about Tilt near the bottom and choose **Open Anyway**. macOS asks this once.
 
 Each release lists the zip's SHA-256, so you can check the file you got is the one published:
 `shasum -a 256 Tilt-1.0.zip`.
