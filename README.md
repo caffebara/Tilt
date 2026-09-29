@@ -44,42 +44,26 @@ at login" switch needs it, build with
 ```
 
 That quits a running Tilt, replaces `/Applications/Tilt.app` with the new build and opens it. It
-refuses to replace an app of that name that is not Tilt. Rebuilding this way keeps the screen
-recording grant, for the same reason the next paragraph gives.
+refuses to replace an app of that name that is not Tilt.
 
-**The first run makes a certificate, and that is the point rather than a detail.** `build.sh`
-creates a self-signed code signing identity called "Tilt Local Signing" in your login keychain and
-signs with it. An ad-hoc signature would pin the screen recording grant to the binary's hash, so
-every rebuild would ask for the permission again. The certificate pins it to the identity instead,
-and the grant survives.
-
-That has a cost worth knowing. The key is imported so that `codesign` can use it on every build
-without asking, which means any other process running as you can use it too, sign itself as Tilt,
-and inherit Tilt's screen recording grant. Narrowing the key to `codesign` would not help, since
-any process can run `codesign`. Measured on 2026-09-29: a separate app signed with this
-certificate under Tilt's bundle id read the grant as given, and the same app under another bundle
-id, or signed ad hoc, did not. If that matters on your machine, delete the certificate when you are
-not building, and remove the grant when you stop using Tilt.
+**Every build asks for screen recording again, once.** `build.sh` signs ad hoc, so it never touches
+your keychain, and macOS ties the permission to that exact build. A rebuild is a new app to it.
+`--install` clears the old permission before it installs, so macOS asks cleanly. A plain
+`./build.sh` does not, so after rebuilding in place run the `tccutil` line below: the old
+permission stays recorded against the old build and does not apply to the new one.
 
 ## Uninstall
 
-Reset the screen recording grant first, while Tilt is still installed. `tccutil` finds the app
-through macOS's record of it, and with the app deleted it fails with "No such bundle identifier".
+Reset the screen recording permission first, while Tilt is still installed. `tccutil` finds the
+app through macOS's record of it, and with the app deleted it fails with "No such bundle
+identifier".
 
 ```sh
-tccutil reset ScreenCapture io.sxong.tilt           # the screen recording grant
+tccutil reset ScreenCapture io.sxong.tilt
 ```
 
-Then delete `Tilt.app`, and the signing certificate `build.sh` made:
-
-```sh
-security delete-identity -c "Tilt Local Signing"   # the certificate and its key
-```
-
-The settings and the "Open at login" entry are removed as [PRIVACY.md](PRIVACY.md) describes.
-
-Reset the grant whenever you delete the certificate, even if you are rebuilding rather than
-leaving. It was recorded against the old certificate, and the next build makes a new one.
+Then delete `Tilt.app`. The settings and the "Open at login" entry are removed as
+[PRIVACY.md](PRIVACY.md) describes.
 
 ## Controls
 

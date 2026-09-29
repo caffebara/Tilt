@@ -14,9 +14,11 @@ so do not copy it to `/Applications`, and do not launch it as a side effect of a
 `./build.sh --install` does both, and it is that person's command, never an agent's.
 
 `build.sh` is the loop and the distribution both: there is no download, so building is how anyone
-runs this. It signs with a certificate it creates itself, and that is the only reason
-the screen recording permission survives a rebuild, since an ad-hoc signature pins the grant to
-the binary's hash.
+runs this. It signs ad hoc and never touches the keychain. That pins the screen recording grant to
+the binary's hash, so every rebuild asks again; `--install` resets the old grant first. A
+self-signed certificate avoided the re-ask and was removed on 2026-09-29, because its first build
+stopped on a login keychain password prompt, and because any process could sign with its key and
+inherit the grant.
 
 ## Traps that have already cost a day
 

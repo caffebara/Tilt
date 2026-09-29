@@ -1,11 +1,11 @@
 #!/bin/sh
 # Builds Tilt.app next to this script.
 #
-# Signing matters more than it looks: an ad-hoc signature pins the designated
-# requirement to the binary's cdhash, so every rebuild looks like a different
-# app and macOS asks for screen recording again. A self-signed certificate pins
-# it to the certificate instead, and the grant survives rebuilds. The identity
-# is created here on first run.
+# Signed ad hoc, so nothing touches the keychain. The price is that macOS pins
+# the screen recording grant to the binary's hash, and every rebuild is a new
+# app to it: --install resets the old grant so it asks once, cleanly. A
+# self-signed certificate kept the grant across rebuilds, and was dropped on
+# 2026-09-29 because its first build asked for the login keychain password.
 set -eu
 cd "$(dirname "$0")"
 
@@ -16,39 +16,6 @@ cd "$(dirname "$0")"
 	echo "Tilt needs Apple silicon. build.sh targets arm64 (see swiftc -target)." >&2
 	exit 1
 }
-
-IDENTITY="Tilt Local Signing"
-KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
-
-identity_hash() {
-	security find-identity -p codesigning 2>/dev/null \
-		| awk -v name="\"$IDENTITY\"" '$0 ~ name { print $2; exit }'
-}
-
-HASH=$(identity_hash)
-if [ -z "$HASH" ]; then
-	echo "creating code signing identity: $IDENTITY"
-	TMP=$(mktemp -d)
-	trap 'rm -rf "$TMP"' EXIT
-	# The system's LibreSSL, not whatever is first on PATH. A Homebrew OpenSSL 3
-	# writes a PKCS#12 that `security import` rejects with "MAC verification
-	# failed", measured 2026-09-29.
-	/usr/bin/openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
-		-keyout "$TMP/key.pem" -out "$TMP/cert.pem" \
-		-subj "/CN=$IDENTITY" \
-		-addext "basicConstraints=critical,CA:FALSE" \
-		-addext "keyUsage=critical,digitalSignature" \
-		-addext "extendedKeyUsage=critical,codeSigning" 2>/dev/null
-	/usr/bin/openssl pkcs12 -export -out "$TMP/bundle.p12" -inkey "$TMP/key.pem" \
-		-in "$TMP/cert.pem" -passout pass:tilt -name "$IDENTITY" 2>/dev/null
-	# -A lets codesign use the key on every build without asking. It also lets any
-	# other process running as this user sign with it, and so pass for Tilt to the
-	# screen recording grant. Narrowing it to codesign would not change that, since
-	# any process can run codesign. The README says so.
-	security import "$TMP/bundle.p12" -k "$KEYCHAIN" -P tilt -A >/dev/null
-	HASH=$(identity_hash)
-	[ -n "$HASH" ] || { echo "could not create the signing identity" >&2; exit 1; }
-fi
 
 # --test builds TiltTest.app instead, with the lid sensor readable from
 # /tmp/tilt-fake-lid so transitions can be driven without a hand on the hinge.
@@ -85,10 +52,10 @@ cp Resources/PrivacyInfo.xcprivacy "$APP/Contents/Resources/PrivacyInfo.xcprivac
 
 swiftc -O -target arm64-apple-macos14.0 $EXTRA main.swift -o "$APP/Contents/MacOS/Tilt"
 if [ -n "$ENTITLEMENTS" ]; then
-	codesign --force --sign "$HASH" --timestamp=none \
+	codesign --force --sign - --timestamp=none \
 		--options runtime --entitlements "$ENTITLEMENTS" "$APP"
 else
-	codesign --force --sign "$HASH" --timestamp=none "$APP"
+	codesign --force --sign - --timestamp=none "$APP"
 fi
 case "$APP" in
 	/*) echo "built $APP" ;;
@@ -119,6 +86,11 @@ if [ "${1:-}" = "--install" ]; then
 		[ "$n" -le 50 ] || { echo "Tilt did not quit; quit it and run again" >&2; exit 1; }
 		sleep 0.2
 	done
+	# The grant belongs to the old build's hash and no longer applies. Left in
+	# place it shows as switched on while capture is refused. tccutil finds the
+	# app through Launch Services, so this runs while the old copy is still
+	# there, and on a first install it has nothing to reset.
+	tccutil reset ScreenCapture io.sxong.tilt >/dev/null 2>&1 || true
 	rm -rf "$DEST"
 	ditto "$APP" "$DEST"
 	open "$DEST"
