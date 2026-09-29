@@ -1727,16 +1727,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         addFooter(to: menu)
     }
 
-    /// The rows every state of the menu ends with, including the one before the
-    /// screen recording permission exists. The privacy policy is what someone
-    /// reads before granting that permission, and an app with no window and no
-    /// dock icon has this menu and nothing else, so the link cannot live behind a
-    /// state the user may never reach.
+    /// The row every state of the menu ends with, including the one before the
+    /// screen recording permission exists.
     private func addFooter(to menu: NSMenu) {
-        let privacy = NSMenuItem(title: "Privacy Policy", action: #selector(openPrivacyPolicy),
-                                 keyEquivalent: "")
-        privacy.target = self
-        menu.addItem(privacy)
         // Our own selector rather than NSApplication.terminate on NSApp. Pointed
         // at the application object the row drew a symbol of its own in the
         // state column, which is where a checkmark goes, so the title sat a
@@ -1745,15 +1738,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                               keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
-    }
-
-    /// Served from a repository that holds the policy and nothing else, split out
-    /// while this one was private. The URL is compiled into every build, so that
-    /// repository cannot move or go dark without breaking copies already built.
-    private static let privacyPolicyURL = URL(string: "https://caffebara.github.io/tilt-privacy/")!
-
-    @objc private func openPrivacyPolicy() {
-        NSWorkspace.shared.open(Self.privacyPolicyURL)
     }
 
     @objc private func quitTilt() {

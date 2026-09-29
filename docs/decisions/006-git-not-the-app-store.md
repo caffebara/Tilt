@@ -50,8 +50,8 @@ protection in Sequoia, 2026-09-28.
 **Nothing in the app changes.** The sandbox stays, and so does `device.usb`, which
 `AGENTS.md` records as the one grant the sensor needs: removing it looks harmless and
 silently kills the app. `PrivacyInfo.xcprivacy` stays, harmless and true. The privacy
-policy URL stays compiled in and its repository stays the only copy, because the policy
-is still the honest answer to what the capture does and 006 does not make it false.
+policy stays too, because it is still the honest answer to what the capture does. It moved
+into `PRIVACY.md` on 2026-09-29, and the app stopped linking to a hosted copy.
 
 ~~`docs/app-store.md` is kept as a record rather than deleted.~~ **Deleted on 2026-09-29,
 with `docs/listing.md`.** Four hundred lines of process for a store this app is not on is noise in

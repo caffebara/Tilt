@@ -52,14 +52,6 @@ arch -x86_64 "$DERIVED/Build/Products/Release/Tilt.app/Contents/MacOS/Tilt" --ch
 It reads like a slice nobody has run, and pinning the project to arm64 to make the paths agree cuts
 a platform for nothing.
 
-**The privacy policy URL is compiled in, so the GitHub account name is load-bearing.**
-`main.swift` ships `https://caffebara.github.io/tilt-privacy/` as a string in the binary, and the
-menu opens it. Renaming the account, renaming or deleting `caffebara/tilt-privacy`, or switching
-its Pages off points every copy already built at a 404, and that repository is the only place the
-policy exists. This one has cost nothing yet, unlike the rest of this section; it is here because
-the price of springing it is paid by whoever is running a build that can no longer be changed. A
-domain of one's own would end it, and was judged not worth buying.
-
 **An Xcode build registers its product with Launch Services.** `xcodebuild` runs
 `lsregister -f -R -trusted` on the built `.app`, so every Release build puts another Tilt in
 Spotlight and Open With under the same name, icon and bundle id as the installed one. That is the

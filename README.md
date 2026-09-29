@@ -96,6 +96,11 @@ The app is sandboxed and carries `com.apple.security.device.usb`, which is what 
 sensor at all rather than anything to do with USB devices. `AGENTS.md` says what removing it costs,
 along with the rest of what this code does not reveal about itself.
 
+## Privacy
+
+No network code, nothing written to disk, and nothing but settings stored.
+[PRIVACY.md](PRIVACY.md) says what is read, what is kept, and how to remove it.
+
 ## Licence
 
 MIT, in [LICENSE](LICENSE). The menu bar glyph is somebody else's and carries its own notice; see
