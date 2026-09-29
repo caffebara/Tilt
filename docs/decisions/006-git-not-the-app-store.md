@@ -56,13 +56,12 @@ is still the honest answer to what the capture does and 006 does not make it fal
 ~~`docs/app-store.md` is kept as a record rather than deleted.~~ **Deleted on 2026-09-29,
 with `docs/listing.md`.** Four hundred lines of process for a store this app is not on is noise in
 a public repository, and the reader it was written for no longer exists. What was load-bearing was
-already held elsewhere and stays: the sandbox measurement is in 004 and in `AGENTS.md`, and the
+already held elsewhere and stays: the sandbox measurement is in `AGENTS.md`, and the
 architecture check's commands moved into `AGENTS.md` rather than being pointed at. What went with
 it was store process, the review-clause table, and the listing copy.
 
-**005 still points at that file and is left pointing.** A decision records what was true when it
-was made, and repairing its prose to match a later one would make the record agree with itself
-rather than with what happened.
+004 and 005, the sandbox and demo decisions made for App Review, went the same day for the same
+reason. The sensor measurement 004 held is in `AGENTS.md`.
 
 **What this accepts is discovery.** Nobody finds this in a store search. The two apps
 that do the same thing are free, listed, and the ones people will find, and this one

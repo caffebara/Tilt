@@ -23,6 +23,4 @@ several paths clear the flag independently, so a flag could not carry the rule.
 
 ## Consequences
 
-In clamshell on an external display the app is inert, and says so in the menu. That is the same
-state a review machine is in, which is why the demo in 004 can borrow a screen: a demo is not
-claiming the panel is turning.
+In clamshell on an external display the app is inert, and says so in the menu.
