@@ -1607,8 +1607,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // The live screen list, not `nsScreen`. That property is assigned and
         // never cleared, so `nsScreen == nil` was true only before the first
         // `setUp` and a panel that went away afterwards left this row unshown:
-        // exactly the clamshell case 001 says the menu reports, and the case
-        // `docs/app-store.md` promises App Review that it reports. 001 already
+        // exactly the clamshell case 001 says the menu reports. 001 already
         // settled the shape, for `engage()`: ask the screen rather than a
         // remembered answer, because `nsScreen` outlives the screen it names.
         if Self.builtInScreen() == nil {
@@ -1729,10 +1728,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// The rows every state of the menu ends with, including the one before the
-    /// screen recording permission exists. 5.1.1(i) wants the privacy policy
-    /// linked "within the app in an easily accessible manner", and an app with no
-    /// window and no dock icon has this menu and nothing else, so the link cannot
-    /// live behind a state the user may never reach.
+    /// screen recording permission exists. The privacy policy is what someone
+    /// reads before granting that permission, and an app with no window and no
+    /// dock icon has this menu and nothing else, so the link cannot live behind a
+    /// state the user may never reach.
     private func addFooter(to menu: NSMenu) {
         let privacy = NSMenuItem(title: "Privacy Policy", action: #selector(openPrivacyPolicy),
                                  keyEquivalent: "")
@@ -1748,9 +1747,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(quit)
     }
 
-    /// Served from a repository that holds the policy and nothing else. This one
-    /// is private, and a repository is public or private whole, so publishing the
-    /// policy out of it would have published the source too.
+    /// Served from a repository that holds the policy and nothing else, split out
+    /// while this one was private. The URL is compiled into every build, so that
+    /// repository cannot move or go dark without breaking copies already built.
     private static let privacyPolicyURL = URL(string: "https://caffebara.github.io/tilt-privacy/")!
 
     @objc private func openPrivacyPolicy() {

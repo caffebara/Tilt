@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Mandatory for the Mac App Store. -->
+	<!-- Kept off the store too: 006 says why, and AGENTS.md what the sensor needs inside it. -->
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
 
