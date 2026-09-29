@@ -15,29 +15,31 @@ front of it. Open the lid back past the threshold and everything goes away.
 It runs on the built-in display only. The illusion is that a plane stays fixed while the lid turns
 in front of it, and an external display does not turn.
 
-## Build
+## Install
+
+Building is how you get it. There is no download, and that is a decision rather than a gap:
+[006](docs/decisions/006-git-not-the-app-store.md) has why. You also need Xcode's command line
+tools, for `swiftc`.
 
 ```sh
+git clone https://github.com/caffebara/Tilt
+cd Tilt
 ./build.sh
 ```
 
-Writes `Tilt.app` next to the script, signed with a local certificate that `build.sh` creates on
-first run. The certificate is what makes the screen recording permission survive a rebuild: an
-ad-hoc signature pins the grant to the binary's hash, so every rebuild would ask again.
+`Tilt.app` lands beside the script. Open it and nothing appears, because there is no window: Tilt
+is the icon in the menu bar. macOS asks for screen recording the first time, and until that is
+granted the app does nothing, since your desktop is the picture it tilts. Let macOS quit and reopen
+Tilt when it offers, or the permission does not take hold until the next launch.
 
-To use your own icon, drop a 1024x1024 `AppIcon.png` in this directory, delete `AppIcon.icns` and
-build again. Without one, `makeicon.swift` draws a placeholder.
+It runs from wherever you put it. Move it into `/Applications` if you want the "Open at login"
+switch, which is the one setting that checks where the app is running from.
 
-### Test build
-
-```sh
-./build.sh --test
-```
-
-Builds `TiltTest.app` into `$TMPDIR` with the lid angle read from `/tmp/tilt-fake-lid`, so
-transitions can be driven without a hand on the hinge. The hook is behind a compile flag and cannot
-reach a normal build. It goes to `$TMPDIR` because built beside the real app it turned up in
-launchers with the same name, icon and bundle id.
+**The first run makes a certificate, and that is the point rather than a detail.** `build.sh`
+creates a self-signed code signing identity called "Tilt Local Signing" in your login keychain and
+signs with it. An ad-hoc signature would pin the screen recording grant to the binary's hash, so
+every rebuild would ask for the permission again. The certificate pins it to the identity instead,
+and the grant survives.
 
 ## Controls
 
@@ -69,19 +71,7 @@ Rendering is driven by a display link rather than by captured frames, because Sc
 delivers a frame when the screen changes and a still desktop would freeze the motion. A One Euro
 filter fills in between the sensor's whole-degree readings.
 
-## Distribution
-
-Build it. There is no download, and that is a decision rather than a gap:
-[006](docs/decisions/006-git-not-the-app-store.md) has why. A signed, notarized download needs a
-Developer ID certificate and so the same paid membership a store listing would have, and
-`build.sh`'s own certificate is what keeps the screen recording permission across rebuilds, which
-a notarized update would not.
-
-The app is still built and signed as though it were going to the store, because that is what
-makes the sensor answer: `com.apple.security.device.usb` inside the sandbox. `AGENTS.md` says what
-removing it costs.
-
-## Checks
+## Development
 
 ```sh
 ./Tilt.app/Contents/MacOS/Tilt --check
@@ -89,6 +79,22 @@ removing it costs.
 
 Reads the sensor and asserts the smoothing filter still hides the quantisation without lagging a
 fast close.
+
+```sh
+./build.sh --test
+```
+
+Builds `TiltTest.app` into `$TMPDIR` with the lid angle read from `/tmp/tilt-fake-lid`, so
+transitions can be driven without a hand on the hinge. The hook is behind a compile flag and cannot
+reach a normal build. It goes to `$TMPDIR` because built beside the real app it turned up in
+launchers with the same name, icon and bundle id.
+
+To use your own icon, drop a 1024x1024 `AppIcon.png` in this directory, delete `AppIcon.icns` and
+build again. Without one, `makeicon.swift` draws a placeholder.
+
+The app is sandboxed and carries `com.apple.security.device.usb`, which is what lets it read the
+sensor at all rather than anything to do with USB devices. `AGENTS.md` says what removing it costs,
+along with the rest of what this code does not reveal about itself.
 
 ## Licence
 
