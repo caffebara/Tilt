@@ -79,7 +79,7 @@ cp MenuIcon.svg "$APP/Contents/Resources/MenuIcon.svg"
 cp THIRD-PARTY-NOTICES.md "$APP/Contents/Resources/THIRD-PARTY-NOTICES.md"
 
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-# The privacy manifest. Nothing off the store reads it, and 006 keeps it because
+# The privacy manifest. Nothing off the store reads it, and it is kept because
 # it is true.
 cp Resources/PrivacyInfo.xcprivacy "$APP/Contents/Resources/PrivacyInfo.xcprivacy"
 

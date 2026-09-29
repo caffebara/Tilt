@@ -21,9 +21,9 @@ in front of it, and an external display does not turn.
 
 ## Install
 
-Building is how you get it. There is no download, and that is a decision rather than a gap:
-[006](docs/decisions/006-git-not-the-app-store.md) has why. You also need Xcode's command line
-tools, for `swiftc`.
+Building is how you get it. There is no download, and that is a decision rather than a gap: a
+download signed for other people's Macs needs a paid Apple Developer account, and the source is
+free. You also need Xcode's command line tools, for `swiftc`.
 
 ```sh
 git clone https://github.com/caffebara/Tilt

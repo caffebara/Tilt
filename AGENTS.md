@@ -12,8 +12,8 @@ from the code; treat it as given and verify behaviour on hardware.
 `./build.sh` writes `Tilt.app` beside itself. Leave it there. Whoever runs the build installs it,
 so do not copy it to `/Applications`, and do not launch it as a side effect of a build.
 
-`build.sh` is the loop and the distribution both, per 006: there is no download, so building is
-how anyone runs this. It signs with a certificate it creates itself, and that is the only reason
+`build.sh` is the loop and the distribution both: there is no download, so building is how anyone
+runs this. It signs with a certificate it creates itself, and that is the only reason
 the screen recording permission survives a rebuild, since an ad-hoc signature pins the grant to
 the binary's hash.
 

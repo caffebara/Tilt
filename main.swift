@@ -1321,7 +1321,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 // excluded from the shot, and the still came back with the
                 // overlay's own output baked into it. The windows were then on
                 // screen twice, once flat in the backdrop and once folded over
-                // it, which is decision 002's fault arriving by another road.
+                // it: the doubled picture the two captures exist to prevent,
+                // arriving by another road.
                 if let fresh = await capture.captureWallpaper(on: nsScreen) {
                     self.view.setWallpaper(fresh)
                     // A shot that arrived retires whatever failed last time.
@@ -1329,8 +1330,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     // session over a failure that is long over.
                     self.captureFailure = nil
                 } else {
-                    // A still that did not arrive is the black surround decision
-                    // 002 describes, and it used to happen with nothing said.
+                    // A still that did not arrive is the black surround AGENTS.md
+                    // describes, and it used to happen with nothing said.
                     self.captureFailure = DesktopCapture.CaptureError.noWallpaper
                 }
                 try await capture.start(on: nsScreen, excludingWindow: window.windowNumber)
@@ -1607,9 +1608,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // The live screen list, not `nsScreen`. That property is assigned and
         // never cleared, so `nsScreen == nil` was true only before the first
         // `setUp` and a panel that went away afterwards left this row unshown:
-        // exactly the clamshell case 001 says the menu reports. 001 already
-        // settled the shape, for `engage()`: ask the screen rather than a
-        // remembered answer, because `nsScreen` outlives the screen it names.
+        // exactly the clamshell case the menu is meant to report. `engage()`
+        // already has the shape: ask the screen rather than a remembered
+        // answer, because `nsScreen` outlives the screen it names.
         if Self.builtInScreen() == nil {
             let none = NSMenuItem(title: "Waiting for the built-in display",
                                   action: nil, keyEquivalent: "")
