@@ -1751,7 +1751,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func openPrivacyPolicy() {
-        guard let url = URL(string: "https://github.com/caffebara/Tilt/blob/main/PRIVACY.md")
+        guard let url = URL(string: "https://caffebara.github.io/Tilt/PRIVACY.html")
         else { return }
         NSWorkspace.shared.open(url)
     }

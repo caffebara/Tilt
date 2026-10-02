@@ -64,13 +64,13 @@ Utilities (`public.app-category.utilities`), set in `Resources/Info.plist`.
 ## Support URL
 
 ```
-https://github.com/caffebara/Tilt/issues
+https://caffebara.github.io/Tilt/SUPPORT.html
 ```
 
 ## Privacy policy URL
 
 ```
-https://github.com/caffebara/Tilt/blob/main/PRIVACY.md
+https://caffebara.github.io/Tilt/PRIVACY.html
 ```
 
 ## Copyright
@@ -84,7 +84,7 @@ https://github.com/caffebara/Tilt/blob/main/PRIVACY.md
 ```
 Tilt draws the Mac's desktop in 3D perspective, driven by the MacBook lid angle. Close the lid partway and the windows tilt away from a flat wallpaper, held fixed in space while the screen turns.
 
-HARDWARE: an Apple silicon MacBook with a lid angle sensor, using its built-in display. On a desktop Mac, or with only an external display, the menu says "No lid angle sensor on this Mac" or "Waiting for the built-in display" and nothing else happens. A recording of the effect: https://github.com/caffebara/Tilt/blob/main/docs/demo.gif
+HARDWARE: an Apple silicon MacBook with a lid angle sensor, using its built-in display. On a desktop Mac, or with only an external display, the menu says "No lid angle sensor on this Mac" or "Waiting for the built-in display" and nothing else happens. A recording of the effect on a real MacBook: https://github.com/caffebara/Tilt/releases/download/v1.0/Tilt-real.mp4 . A 3D render of the same effect seen from the viewer's position, with the lid driven by a real recording: https://github.com/caffebara/Tilt/releases/download/v1.0/Tilt-render.mp4
 
 TO SEE IT:
 1. Open Tilt. It has no window; it is the icon in the menu bar.
