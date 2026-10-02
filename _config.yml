@@ -1,0 +1,3 @@
+# GitHub Pages serves PRIVACY.html and SUPPORT.html from this repo for the
+# App Store listing. Only the pages and what they link to are published.
+exclude: [AGENTS.md, CLAUDE.md, APPSTORE.md, Tilt.xcodeproj, project.yml, build.sh, makeicns.sh, "*.swift", Resources]
