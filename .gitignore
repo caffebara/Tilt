@@ -1,6 +1,7 @@
 # Build output
 Tilt.app/
 TiltTest.app/
+*.xcodeproj/xcuserdata/
 
 # Generated from AppIcon.png by build.sh
 AppIcon.icns
