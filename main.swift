@@ -857,6 +857,7 @@ final class SliderRow: NSView {
         slider.target = target
         slider.action = action
         slider.frame = NSRect(x: 16, y: 6, width: 268, height: 22)
+        slider.setAccessibilityLabel(title)
         addSubview(slider)
 
         refresh()
@@ -900,6 +901,7 @@ final class SegmentRow: NSView {
         segments.target = target
         segments.action = action
         segments.frame = NSRect(x: 16, y: 6, width: 268, height: 24)
+        segments.setAccessibilityLabel(title)
         addSubview(segments)
     }
 
@@ -952,6 +954,7 @@ final class SwitchRow: NSView {
         toggle.sizeToFit()
         toggle.setFrameOrigin(NSPoint(x: 284 - toggle.frame.width,
                                       y: (34 - toggle.frame.height) / 2))
+        toggle.setAccessibilityLabel(title)
         addSubview(toggle)
     }
 
@@ -1731,6 +1734,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// The row every state of the menu ends with, including the one before the
     /// screen recording permission exists.
     private func addFooter(to menu: NSMenu) {
+        // Guideline 5.1.1(i) wants the policy reachable from inside the app.
+        let privacy = NSMenuItem(title: "Privacy Policy…", action: #selector(openPrivacyPolicy),
+                                 keyEquivalent: "")
+        privacy.target = self
+        menu.addItem(privacy)
+
         // Our own selector rather than NSApplication.terminate on NSApp. Pointed
         // at the application object the row drew a symbol of its own in the
         // state column, which is where a checkmark goes, so the title sat a
@@ -1739,6 +1748,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                               keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
+    }
+
+    @objc private func openPrivacyPolicy() {
+        guard let url = URL(string: "https://github.com/caffebara/Tilt/blob/main/PRIVACY.md")
+        else { return }
+        NSWorkspace.shared.open(url)
     }
 
     @objc private func quitTilt() {

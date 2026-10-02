@@ -9,3 +9,13 @@ AppIcon.icns
 
 # Claude Code, per-machine
 .claude/settings.local.json
+
+# Signing material: never commit
+*.p8
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+*.key
+*.pem
