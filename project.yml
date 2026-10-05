@@ -41,7 +41,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_ENTITLEMENTS: Resources/Tilt.entitlements
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: "" # until the developer account is approved
+        DEVELOPMENT_TEAM: XAM6695LYP
         ENABLE_HARDENED_RUNTIME: YES
         ARCHS: arm64
         MACOSX_DEPLOYMENT_TARGET: "14.0"

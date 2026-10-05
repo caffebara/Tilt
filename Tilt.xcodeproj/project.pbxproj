@@ -84,7 +84,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					2DBE82E8951C8423DE9342F8 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = XAM6695LYP;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -165,7 +165,7 @@
 				CODE_SIGN_ENTITLEMENTS = Resources/Tilt.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = XAM6695LYP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -309,7 +309,7 @@
 				CODE_SIGN_ENTITLEMENTS = Resources/Tilt.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = XAM6695LYP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
