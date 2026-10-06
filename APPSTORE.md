@@ -22,7 +22,7 @@ Windows lift as the lid closes
 ## Promotional text [170]
 
 ```
-Close your MacBook's lid partway and the windows lift off the desktop, held still in space while the screen turns in front of them.
+Lower your MacBook's lid a little and your windows lean back while the desktop holds still. Lift it again and it's just your Mac.
 ```
 
 ## Keywords [100]
@@ -34,27 +34,19 @@ hinge,angle,desktop,parallax,wallpaper,illusion,depth,spatial,menu bar,screen,wi
 ## Description, Mac [4000]
 
 ```
-Tilt turns the angle of your MacBook's lid into depth.
+Tilt is a small menu bar app that turns your MacBook's lid into a window onto your desktop.
 
-Bring the lid down past a threshold and the desktop changes: the wallpaper stays flat where it is, the windows tilt away from it, and the picture holds still in space while the panel turns in front of it. Open the lid back up and everything returns to normal.
+Lower the lid a little and the desktop stays where it was. The wallpaper sits flat, your windows lean back from it, and as the screen keeps turning, the picture holds still behind the glass. Lift the lid again and everything is back to normal.
 
-It reads the lid angle from the sensor built into the hinge, so there is nothing to wear, track or calibrate. The perspective is drawn for how far you sit from the screen, which you set once.
+There's no camera and no head tracking. Your MacBook already knows its lid angle from a sensor in the hinge, and Tilt simply reads it. You tell Tilt roughly how far you sit from the screen, and it draws the perspective for that spot.
 
-■ Controls, all in the menu bar
-• Enabled: switch the effect on and off.
-• Engage below: the lid angle the effect starts under, from 40° to 120°.
-• You sit about: your distance from the screen, from 30 to 90 cm.
-• Glass effect: how much the far edge blurs and darkens as it leans away.
-• Show angle in menu bar: the live lid angle beside the icon.
-• Open at login.
+You choose the angle where it starts, how far away you sit, and how much the far edge softens as it leans away. Everything lives in the menu bar. There's no window and no Dock icon, and if you want the effect gone halfway through, press Esc.
 
-While the effect is on screen, press Esc to dismiss it, or open the lid back past the threshold.
+What you need
+An Apple silicon MacBook with a lid angle sensor, using its built-in display. An external display doesn't move with the lid, so Tilt leaves it alone.
 
-■ Requirements
-An Apple silicon MacBook with a lid angle sensor, and the built-in display. An external display does not turn, so Tilt does nothing there.
-
-■ Privacy
-Tilt needs the Screen Recording permission, because drawing your desktop in perspective means reading it first. The picture is drawn on your screen and discarded: never saved, never sent. Tilt has no network code at all, and stores nothing but its own settings.
+Privacy
+Tilt asks for Screen Recording because it has to see your desktop to redraw it. Each frame is drawn and then thrown away. Nothing is saved, nothing leaves your Mac, and the app has no network code at all.
 ```
 
 ## Category
