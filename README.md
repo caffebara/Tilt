@@ -6,11 +6,16 @@ Close the lid past a threshold and the windows lift off the desktop: the wallpap
 it is, the windows tilt away from it, and the picture stays put in space while the panel turns in
 front of it. Open the lid back past the threshold and everything goes away.
 
+<img src="docs/appstore/1-perspective.png" alt="Your desktop, in perspective: a MacBook with its lid partway down, the windows leaning back from the screen while the wallpaper stays flat">
+
+On a real MacBook:
+
 <img src="docs/demo.gif" alt="A MacBook lid closing: as it comes down, the Notes window on screen leans back while the wallpaper around it stays put" width="480">
 
-| The windows lift off | The picture holds still |
-| --- | --- |
-| ![A MacBook with its lid partway down: the windows lean back from the screen while the wallpaper stays flat](docs/appstore/2-lift-off.png) | ![The same MacBook from the side: the windows stay put in space while the screen turns in front of them](docs/appstore/3-holds-still.png) |
+<p>
+  <img src="docs/appstore/2-lift-off.png" width="49%" alt="The windows lift off: the wallpaper stays flat where it is, and the windows tilt away from it">
+  <img src="docs/appstore/3-holds-still.png" width="49%" alt="The picture holds still: seen from the side, the windows stay put in space while the screen turns in front of them">
+</p>
 
 ## Requirements
 
@@ -162,6 +167,8 @@ sensor at all rather than anything to do with USB devices. `AGENTS.md` says what
 along with the rest of what this code does not reveal about itself.
 
 ## Privacy
+
+<img src="docs/appstore/5-privacy.png" alt="No network code. At all. Screen Recording is the only permission Tilt asks for; nothing is saved or sent, and it keeps only its own settings">
 
 No network code, nothing written to disk, and nothing but settings stored.
 [PRIVACY.md](PRIVACY.md) says what is read, what is kept, and how to remove it.
