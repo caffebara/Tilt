@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- The App Store screenshots, composed from the landing site's own pieces (web-builder/tilt: the
+     3D demo, the menu mock, the fonts and colours). Regenerate from this folder:
+       ../../../../web-builder/tilt/node_modules/.bin/vite --config vite.config.mjs &
+       node cap.mjs <out-dir>
+     Each ?s=N is one 1440x900 page, captured at 2x for the store's 2880x1800. -->
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Geist:wght@700..900&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+  html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; }
+  body { position: relative; background:
+    radial-gradient(60% 55% at 12% 30%, rgba(160,190,230,.28), transparent 70%),
+    radial-gradient(55% 50% at 88% 25%, rgba(245,200,160,.30), transparent 70%),
+    var(--bg); }
+  .shot { position: absolute; inset: 0; display: none; }
+  .shot.on { display: block; }
+  .head { position: absolute; top: 74px; left: 0; right: 0; text-align: center; z-index: 2; }
+  .head h1 { font-family: var(--display); font-weight: 800; font-size: 76px; line-height: 1.02; letter-spacing: -.045em; margin: 0; color: var(--fg); }
+  .head h1 .serif { font-size: 1.06em; }
+  .head p { font-size: 25px; line-height: 1.35; letter-spacing: -.015em; color: var(--dim); margin: 22px auto 0; max-width: 1100px; }
+  .hills { position: absolute; inset: auto 0 0 0; height: 62%; background: url(/hills.webp) center bottom / cover; opacity: .55;
+    -webkit-mask: linear-gradient(to bottom, transparent, #000 45%); mask: linear-gradient(to bottom, transparent, #000 45%); }
+  canvas#demo { position: absolute; left: 0; top: 215px; width: 1440px; height: 685px; z-index: 1; }
+  .stage-menu { position: absolute; left: 50%; top: 270px; transform: translateX(-50%) scale(1.5); transform-origin: top center; width: 560px; }
+  .stage-menu .desk { margin-left: 0; height: 430px; border-radius: 18px; } .stage-menu .desk .menu { right: 24px; }
+  .stage-privacy { position: absolute; left: 50%; top: 360px; transform: translateX(-50%); width: 1180px; }
+  .stage-privacy .grid3 p { font-size: 21px; padding: 34px; border-radius: 28px; margin: 0; }
+  .stage-privacy .grid3 p b { display: block; color: var(--fg); font-size: 25px; letter-spacing: -.02em; margin-bottom: 12px; }
+  .stage-privacy .grid3 a { color: inherit; }
+</style>
+</head><body>
+<div class="hills" id="hills"></div>
+<canvas id="demo"></canvas>
+
+<section class="shot" data-s="1"><div class="head"><h1>Your desktop, <span class="serif">in perspective.</span></h1>
+<p>Close your MacBook's lid partway and the windows lift off the desktop.</p></div></section>
+
+<section class="shot" data-s="2"><div class="head"><h1>The windows lift off.</h1>
+<p>The wallpaper stays flat where it is, and the windows tilt away from it.</p></div></section>
+
+<section class="shot" data-s="3"><div class="head"><h1>The picture holds still.</h1>
+<p>It stays put in space while the screen turns in front of it.</p></div></section>
+
+<section class="shot" data-s="4"><div class="head"><h1>Everything lives in the menu bar.</h1>
+<p>No window, no Dock icon. Press Esc to dismiss the effect, or open the lid back up.</p></div>
+<div class="stage-menu">
+  <div class="desk" role="img">
+    <div class="desk-bar">
+      <span class="item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h3l11 3v8l-11 3H5z"/></svg>104°</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
+      <svg viewBox="0 0 28 14" class="batt"><rect x=".5" y=".5" width="23" height="13" rx="3.5" fill="none" stroke="currentColor" opacity=".5"/><rect x="2.5" y="2.5" width="15" height="9" rx="2" fill="currentColor"/><rect x="25" y="4.5" width="2" height="5" rx="1" fill="currentColor" opacity=".5"/></svg>
+      <span>Fri 3 Oct&nbsp; 9:41</span>
+    </div>
+    <div class="menu"><ul>
+      <li class="switch on">Enabled</li><li class="sep"></li>
+      <li class="slider" style="--v:.625">Engage below <em>90°</em></li>
+      <li class="slider" style="--v:.417">You sit about <em>55 cm away</em></li>
+      <li class="segs">Glass effect <span><i>Off</i><i>Subtle</i><i class="on">Medium</i><i>Strong</i></span></li>
+      <li class="sep"></li>
+      <li class="switch on">Show angle in menu bar</li><li class="switch">Open at login</li>
+      <li class="sep"></li><li>Privacy Policy…</li><li>Quit Tilt</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<section class="shot" data-s="5"><div class="head"><h1>No network code. <span class="serif">At all.</span></h1>
+<p>Screen Recording is the only permission Tilt asks for.</p></div>
+<div class="stage-privacy privacy"><div class="grid3">
+  <p><b>Drawn, then discarded</b>Tilt reads your screen to draw it in perspective. The picture is never saved and never sent.</p>
+  <p><b>Nothing collected</b>No analytics, no crash reporting, no account, no server. Just six settings.</p>
+  <p><b>Stays on your Mac</b>Your settings live in Tilt's own sandbox, and nowhere else.</p>
+</div></div></section>
+
+<script type="module" src="./shots.js"></script>
+</body></html>
