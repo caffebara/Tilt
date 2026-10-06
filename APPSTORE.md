@@ -28,7 +28,7 @@ Close your MacBook's lid partway and the windows lift off the desktop, held stil
 ## Keywords [100]
 
 ```
-hinge,angle,desktop,parallax,wallpaper,illusion,depth,3d,menu bar,screen,window,laptop,motion
+hinge,angle,desktop,parallax,wallpaper,illusion,depth,spatial,menu bar,screen,window,laptop,motion
 ```
 
 ## Description, Mac [4000]
