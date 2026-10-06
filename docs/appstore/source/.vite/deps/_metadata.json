@@ -1,0 +1,32 @@
+{
+  "hash": "d370e590",
+  "configHash": "1464419a",
+  "lockfileHash": "e3b0c442",
+  "browserHash": "482a4e1c",
+  "optimized": {
+    "three": {
+      "src": "../../../../../../web-builder/tilt/node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "7271c03c",
+      "needsInterop": false
+    },
+    "three/examples/jsm/loaders/DRACOLoader.js": {
+      "src": "../../../../../../web-builder/tilt/node_modules/three/examples/jsm/loaders/DRACOLoader.js",
+      "file": "three_examples_jsm_loaders_DRACOLoader__js.js",
+      "fileHash": "bd17f80a",
+      "needsInterop": false
+    },
+    "three/examples/jsm/loaders/GLTFLoader.js": {
+      "src": "../../../../../../web-builder/tilt/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "file": "three_examples_jsm_loaders_GLTFLoader__js.js",
+      "fileHash": "49e666ee",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "three.module-BBY5UXlw": {
+      "file": "three.module-BBY5UXlw.js",
+      "isDynamicEntry": false
+    }
+  }
+}

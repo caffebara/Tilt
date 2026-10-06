@@ -3,7 +3,8 @@
      3D demo, the menu mock, the fonts and colours). Regenerate from this folder:
        ../../../../web-builder/tilt/node_modules/.bin/vite --config vite.config.mjs &
        node cap.mjs <out-dir>
-     Each ?s=N is one 1440x900 page, captured at 2x for the store's 2880x1800. -->
+     Each ?s=N is one 1440x900 page, captured at 2x for the store's 2880x1800. ?s=1&social is the
+     GitHub social preview: a 1440x720 viewport, scaled to 1280x640 as docs/social-preview.jpg. -->
 <html lang="en"><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Geist:wght@700..900&family=Instrument+Serif:ital@0;1&display=swap">
 <style>
@@ -27,6 +28,10 @@
   .stage-privacy .grid3 p { font-size: 21px; padding: 34px; border-radius: 28px; margin: 0; }
   .stage-privacy .grid3 p b { display: block; color: var(--fg); font-size: 25px; letter-spacing: -.02em; margin-bottom: 12px; }
   .stage-privacy .grid3 a { color: inherit; }
+  /* ?social: the GitHub social preview, 2:1, with room above the headline. */
+  html.social, html.social body { height: 720px; }
+  html.social .head { top: 96px; }
+  html.social canvas#demo { top: 250px; height: 470px; }
 </style>
 </head><body>
 <div class="hills" id="hills"></div>
