@@ -64,13 +64,13 @@ Utilities (`public.app-category.utilities`), set in `Resources/Info.plist`.
 ## Support URL
 
 ```
-https://caffebara.github.io/Tilt/SUPPORT.html
+https://tilt.cottonferry.com/support/
 ```
 
 ## Privacy policy URL
 
 ```
-https://caffebara.github.io/Tilt/PRIVACY.html
+https://tilt.cottonferry.com/privacy/
 ```
 
 ## Copyright
