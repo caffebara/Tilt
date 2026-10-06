@@ -80,8 +80,10 @@ app through macOS's record of it, and with the app deleted it fails with "No suc
 identifier".
 
 ```sh
-tccutil reset ScreenCapture io.sxong.tilt
+tccutil reset ScreenCapture com.cottonferry.tilt
 ```
+
+Tilt 1.0 used the id `io.sxong.tilt`, so for that version use that id instead.
 
 Then delete `Tilt.app`. The settings and the "Open at login" entry are removed as
 [PRIVACY.md](PRIVACY.md) describes.

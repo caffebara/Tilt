@@ -4,7 +4,7 @@
 <dict>
 	<key>CFBundleExecutable</key><string>Tilt</string>
 	<key>CFBundleIconFile</key><string>AppIcon</string>
-	<key>CFBundleIdentifier</key><string>io.sxong.tilt</string>
+	<key>CFBundleIdentifier</key><string>com.cottonferry.tilt</string>
 	<key>CFBundleName</key><string>Tilt</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
 	<key>CFBundleShortVersionString</key><string>1.0</string>

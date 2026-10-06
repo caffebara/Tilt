@@ -36,7 +36,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: Tilt
-        PRODUCT_BUNDLE_IDENTIFIER: io.sxong.tilt
+        PRODUCT_BUNDLE_IDENTIFIER: com.cottonferry.tilt
         INFOPLIST_FILE: Resources/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_ENTITLEMENTS: Resources/Tilt.entitlements

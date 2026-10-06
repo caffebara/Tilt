@@ -1,6 +1,6 @@
 # Privacy Policy for Tilt
 
-Last updated: 2026-09-29
+Last updated: 2026-10-06
 
 **Tilt collects no personal data, and it has no network code of any kind.** Nothing it reads leaves
 your Mac, because there is nothing in the app that could send it anywhere.
@@ -79,7 +79,7 @@ The six settings stay on your Mac until you remove them. They are not sent anywh
 nothing held elsewhere to ask for or to have deleted, and there is no account to close.
 
 To clear them, quit Tilt first and then delete its container folder, at
-`~/Library/Containers/io.sxong.tilt`. Quitting first matters: while Tilt is running it holds the
+`~/Library/Containers/com.cottonferry.tilt` (`io.sxong.tilt` for Tilt 1.0). Quitting first matters: while Tilt is running it holds the
 same values in memory and writes them back when you change a setting, so a folder deleted
 underneath it comes back. Deleting the app does not reliably remove that folder, which is why it is
 worth saying where it is.

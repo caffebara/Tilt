@@ -68,17 +68,22 @@ codesign -d -r- "$APP" 2>&1 | grep designated
 # outside this directory.
 if [ "${1:-}" = "--install" ]; then
 	DEST=/Applications/Tilt.app
-	# Replace Tilt, and nothing else that happens to have the name.
-	if [ -e "$DEST" ] && [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
-		"$DEST/Contents/Info.plist" 2>/dev/null)" != io.sxong.tilt ]; then
-		echo "$DEST is not Tilt, so it is left alone" >&2
-		exit 1
+	# Replace Tilt, and nothing else that happens to have the name. 1.0 shipped
+	# as io.sxong.tilt, before the id moved to the cottonferry.com domain, so an
+	# installed copy may carry either.
+	OLD_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
+		"$DEST/Contents/Info.plist" 2>/dev/null || true)"
+	if [ -e "$DEST" ]; then
+		case "$OLD_ID" in
+			com.cottonferry.tilt|io.sxong.tilt) ;;
+			*) echo "$DEST is not Tilt, so it is left alone" >&2; exit 1 ;;
+		esac
 	fi
 	# Quit a running copy first: a bundle replaced under it keeps the old code
 	# running. Asked only when one is running, because osascript fails on an app
 	# id macOS has never seen, which is every Mac this has not been installed on.
 	if pgrep -f "$DEST/Contents/MacOS/Tilt" >/dev/null; then
-		osascript -e 'tell application id "io.sxong.tilt" to quit' >/dev/null
+		osascript -e "tell application id \"$OLD_ID\" to quit" >/dev/null
 	fi
 	n=0
 	while pgrep -f "$DEST/Contents/MacOS/Tilt" >/dev/null; do
@@ -90,7 +95,7 @@ if [ "${1:-}" = "--install" ]; then
 	# place it shows as switched on while capture is refused. tccutil finds the
 	# app through Launch Services, so this runs while the old copy is still
 	# there, and on a first install it has nothing to reset.
-	tccutil reset ScreenCapture io.sxong.tilt >/dev/null 2>&1 || true
+	[ -n "$OLD_ID" ] && { tccutil reset ScreenCapture "$OLD_ID" >/dev/null 2>&1 || true; }
 	rm -rf "$DEST"
 	ditto "$APP" "$DEST"
 	open "$DEST"
