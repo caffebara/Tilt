@@ -3,20 +3,20 @@
 Copy for App Store Connect, pasted in as it is. The limits in brackets are Apple's; the checker
 in the store repo counts each block against them.
 
-**Draft, 2026-10-02.** Written before the name is reserved. If "Tilt" is taken, the Name, Subtitle
-and Description change with it; the review notes do not. English, because the app's own interface
-is English.
+The store name is reserved: "Tilt" alone was already taken, so the App Store Connect record
+(2026-10-06, bundle id com.cottonferry.tilt) is "Tilt: Lid Perspective". The app itself is still
+called Tilt in the menu bar and in Finder. English, because the app's own interface is English.
 
 ## Name [30]
 
 ```
-Tilt
+Tilt: Lid Perspective
 ```
 
 ## Subtitle [30]
 
 ```
-Your desktop, in perspective
+Windows lift as the lid closes
 ```
 
 ## Promotional text [170]
@@ -28,7 +28,7 @@ Close your MacBook's lid partway and the windows lift off the desktop, held stil
 ## Keywords [100]
 
 ```
-perspective,lid,hinge,angle,desktop,parallax,wallpaper,illusion,depth,menu bar,screen,window
+hinge,angle,desktop,parallax,wallpaper,illusion,depth,3d,menu bar,screen,window,laptop,motion
 ```
 
 ## Description, Mac [4000]
