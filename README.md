@@ -8,9 +8,9 @@ front of it. Open the lid back past the threshold and everything goes away.
 
 <img src="docs/demo.gif" alt="A MacBook lid closing: as it comes down, the Notes window on screen leans back while the wallpaper around it stays put" width="480">
 
-| Lid open | Lid closing |
+| The windows lift off | The picture holds still |
 | --- | --- |
-| ![The desktop with the lid open, a Notes window lying flat](docs/before.png) | ![The same desktop with the lid closing: the Notes window leans away while the wallpaper stays flat](docs/after.png) |
+| ![A MacBook with its lid partway down: the windows lean back from the screen while the wallpaper stays flat](docs/appstore/2-lift-off.png) | ![The same MacBook from the side: the windows stay put in space while the screen turns in front of them](docs/appstore/3-holds-still.png) |
 
 ## Requirements
 
@@ -92,7 +92,7 @@ Then delete `Tilt.app`. The settings and the "Open at login" entry are removed a
 
 Everything lives in the menu bar icon.
 
-<img src="docs/menu.png" alt="The Tilt menu open under its menu bar icon, which shows the lid angle: Enabled, Engage below, You sit about, Glass effect, Show angle in menu bar, Open at login, Quit Tilt" width="420">
+<img src="docs/appstore/4-menu-bar.png" alt="The Tilt menu open under its menu bar icon, which shows the lid angle: Enabled, Engage below, You sit about, Glass effect, Show angle in menu bar, Open at login, Privacy Policy, Quit Tilt" width="560">
 
 - **Enabled** switches the effect on and off.
 - **Engage below** is the lid angle the effect starts under, from 40° to 120° in steps of 5. It
