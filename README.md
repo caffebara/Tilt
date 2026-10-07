@@ -168,7 +168,7 @@ along with the rest of what this code does not reveal about itself.
 
 ## Privacy
 
-<img src="docs/appstore/5-privacy.png" alt="No network code. At all. Screen Recording is the only permission Tilt asks for; nothing is saved or sent, and it keeps only its own settings">
+<img src="docs/appstore/5-privacy.png" alt="No network code. At all. Screen Recording is the only permission Tilt asks for. A MacBook shows a frame captured from Tilt running, the Notes window tilted away from the wallpaper">
 
 No network code, nothing written to disk, and nothing but settings stored.
 [PRIVACY.md](PRIVACY.md) says what is read, what is kept, and how to remove it.
