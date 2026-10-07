@@ -76,7 +76,9 @@ https://tilt.cottonferry.com/privacy/
 ```
 Tilt draws the Mac's desktop in 3D perspective, driven by the MacBook lid angle. Close the lid partway and the windows tilt away from a flat wallpaper, held fixed in space while the screen turns.
 
-HARDWARE: an Apple silicon MacBook with a lid angle sensor, using its built-in display. On a desktop Mac, or with only an external display, the menu says "No lid angle sensor on this Mac" or "Waiting for the built-in display" and nothing else happens. A recording of the effect on a real MacBook: https://github.com/caffebara/Tilt/releases/download/v1.0/Tilt-real.mp4 . A 3D render of the same effect seen from the viewer's position, with the lid driven by a real recording: https://github.com/caffebara/Tilt/releases/download/v1.0/Tilt-render.mp4
+PURPOSE AND AUDIENCE: a free menu bar utility for people with an Apple silicon MacBook. It turns the hinge angle into a sense of depth: a small, playful way to see the desktop, with settings for the angle it starts at, the viewing distance, and the strength of the effect.
+
+HARDWARE: an Apple silicon MacBook with a lid angle sensor, using its built-in display. On a desktop Mac, or with only an external display, the menu says "No lid angle sensor on this Mac" or "Waiting for the built-in display" and nothing else happens. A screen recording from launch and a camera video of the same MacBook, showing the lid and the picture together, are attached to the App Review reply.
 
 TO SEE IT:
 1. Open Tilt. It has no window; it is the icon in the menu bar.
@@ -90,5 +92,11 @@ ENTITLEMENTS: com.apple.security.device.usb. The lid angle sensor is an IOKit HI
 
 The overlay is a full-screen window above other windows while the lid is lowered, because the whole desktop is what it redraws. While it is up, Tilt watches key presses only to recognise Esc; every other key passes through to the app underneath.
 
-No account, no purchases, no in-app purchase.
+EXTERNAL SERVICES: none. Tilt has no network code and uses only Apple frameworks on the device: IOKit HID for the lid angle, ScreenCaptureKit for the desktop. No login, credentials or sample files are needed.
+
+REGIONAL DIFFERENCES: none. The app works the same in every region where it is available.
+
+THIRD-PARTY MATERIAL: the menu bar icon from Tabler Icons, MIT licensed, with its license notice in the app bundle. No regulated industry.
+
+No account, no user-generated content, no purchases, no in-app purchase.
 ```
