@@ -1,13 +1,13 @@
 import '@site/style.css';
-import { createDemo } from '@site/demo.js';
 const q = new URLSearchParams(location.search);
 const s = Number(q.get('s') || 1);
 if (q.has('social')) document.documentElement.classList.add('social');
 document.querySelector(`.shot[data-s="${s}"]`).classList.add('on');
-const scenes = { 1: { angle: 78, view: 1, orbit: 0 }, 2: { angle: 58, view: 1, orbit: 0 }, 3: { angle: 45, view: 1, orbit: 1 }, 5: { angle: 100, view: 1, orbit: 0 } };
-// Scene 5 shows a frame of the real app, from the App Review recording (1-launch-permission-effect.mov
-// at 0:37, lid at 88 degrees), on the screen of an open lid: the store wants the actual app in use.
-// So the demo's two drawn layers become that frame and nothing, before the demo loads them.
+const scenes = { 1: { angle: 78, view: 1, orbit: 0 }, 2: { angle: 58, view: 1, orbit: 0 }, 3: { angle: 45, view: 1, orbit: 1 }, 5: { angle: 67, view: 1, orbit: 0 } };
+// Scene 5 shows a frame of the real app, from the App Review recording (3-esc-dismiss.mov at 0:18,
+// lid at 67 degrees, just before Esc), on a lid at that angle: the store wants the actual app in use.
+// So the demo's two drawn layers become that frame and nothing, and its own effect stays off
+// (demo.js?still, vite.config.mjs), since the frame already carries the real one.
 if (s === 5) {
   const swap = { '/screen-wall.webp': './real-screen.jpg',
     '/screen-windows.webp': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==' };
@@ -18,6 +18,7 @@ if (s === 5) {
 const canvas = document.querySelector('#demo');
 if (!scenes[s]) { canvas.remove(); document.querySelector('#hills').style.opacity = s === 4 ? .5 : .35; window.__ready = true; }
 else {
+  const { createDemo } = await (s === 5 ? import('@site/demo.js?still') : import('@site/demo.js'));
   const demo = await createDemo(canvas);
   const sc = scenes[s];
   // Ease down through the threshold so the effect engages the way it does on a real lid.
